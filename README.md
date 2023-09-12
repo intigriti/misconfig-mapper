@@ -6,7 +6,7 @@ Scanner for Project1
 
 1. Clone this repository
 ```bash
-git clone {GH_REPO}
+$ git clone {GH_REPO}
 ```
 
 2. Run the precompiled binary (see [usage](#Usage) for more information)
