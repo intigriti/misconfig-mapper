@@ -6,17 +6,22 @@ package main
 		[X] Should enumerate potential TLDs through permutations: "intigriti.com", "intigriti.eu", "intigriti.io", "..."
 		[X] Loop over all fingerprints
 		[X] Generate potential PoC URLs
-		[ ] Check against fingerprint data
-		[ ] Return matched results
+		[X] Check against fingerprint data
+		[X] Return matched results
+
+	22:20 - 22:35
 */
 
 import (
 	"os"
 	"fmt"
 	"flag"
+	"time"
+	"regexp"
 	"strings"
 	"net/url"
 	"net/http"
+	"io/ioutil"
 	"encoding/json"
 )
 
@@ -34,6 +39,7 @@ type Result struct {
 	URL					string
 	IsVulnerable		bool
 	ServiceId			int64
+	Service				Fingerprint
 }
 
 /*
@@ -102,6 +108,14 @@ func ParseRequestHeaders(rawHeaders string) map[string]string {
 	return requestHeaders
 }
 
+func ParseFingerprints(v []string) string {
+	x := strings.Join(v, `|`)
+	x = strings.Replace(x, ".", `\.`, -1)
+	x = fmt.Sprintf(`^(.*(\.)?)?(%s)$`, x)
+
+	return x
+}
+
 func ReturnPossibleDomains(target string) []string {
 	var possibleDomains []string
 
@@ -119,9 +133,9 @@ func ReturnPossibleDomains(target string) []string {
 	return possibleDomains
 }
 
-func ReturnServiceFingerprint(id string) any {
+func ReturnServiceFingerprint(id int64) any {
 	for _, s := range fingerprints {
-		if fmt.Sprintf("%v", s.ID) == id {
+		if s.ID == id {
 			return s
 		}
 	}
@@ -129,7 +143,7 @@ func ReturnServiceFingerprint(id string) any {
 	return nil
 }
 
-func CheckResponse(URL string, result *Result, requestHeaders map[string]string, timeout float64) {
+func CheckResponse(result *Result, service Fingerprint, requestHeaders map[string]string, timeout float64) {
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
@@ -137,9 +151,10 @@ func CheckResponse(URL string, result *Result, requestHeaders map[string]string,
 		Timeout: time.Duration(timeout) * time.Second,
 	}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s", CNAME), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s", result.URL), nil)
 	if err != nil {
-		fmt.Printf("Request Error: %s (%s)\n", fmt.Sprintf("https://%s", CNAME), err)
+		fmt.Printf("Request Error: %s (%v)\n", result.URL, err)
+		result.IsVulnerable = false
 	}
 
 	for key, value := range requestHeaders {
@@ -150,38 +165,38 @@ func CheckResponse(URL string, result *Result, requestHeaders map[string]string,
 
 	res, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("Response Error: %s (%s)\n", fmt.Sprintf("https://%s", CNAME), err)
-		return false
+		fmt.Printf("Response Error: %s (%v)\n", result.URL, err)
+		result.IsVulnerable = false
 	}
 	defer res.Body.Close()
 
 	body, _ := ioutil.ReadAll(res.Body)
 
-	fmt.Printf("INFO: Response body: %s (%s)\n", string(body), utils.ParseRE(fingerprint))
+	//fmt.Printf("INFO: Response body: %s (%s)\n", string(body), ParseFingerprints(service.Fingerprints))
 
-	re := regexp.MustCompile(fmt.Sprintf(`%s`, utils.ParseRE(fingerprint))) // Transform array into regex pattern
+	re := regexp.MustCompile(fmt.Sprintf(`%s`, ParseFingerprints(service.Fingerprints))) // Transform array into regex pattern
 
-	return !!re.MatchString(fmt.Sprintf("%s", string(body)))
+	result.IsVulnerable = !!re.MatchString(fmt.Sprintf("%s", string(body)))
 }
 
 func main() {
 	targetFlag := flag.String("target", "", "Specify your target domain name or Company name: Intigriti")
-	serviceFlag := flag.String("service", "", "Specify the service ID you'd like to check for: \"1\" for Atlassian Jira Service Desk")
+	serviceFlag := flag.Int64("service", 0, "Specify the service ID you'd like to check for: \"1\" for Atlassian Jira Service Desk")
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookies: xyz...;;\"")
-	timeoutFlag := flag.Float64Var("timeout", 7.0, "Specify a timeout for each request sent in seconds (default: \"7.0\").")
+	timeoutFlag := flag.Float64("timeout", 7.0, "Specify a timeout for each request sent in seconds (default: \"7.0\").")
 	servicesFlag := flag.Bool("services", false, "Print all services with their associated IDs")
 
 	flag.Parse()
 
 	var target string = *targetFlag
-	var service string = *serviceFlag
+	var service int64 = *serviceFlag
 	var requestHeaders map[string]string = ParseRequestHeaders(*requestHeadersFlag)
 	var timeout float64 = *timeoutFlag
 
 	fingerprints = LoadFingerprints()
 
 	if *servicesFlag {
-		fmt.Printf("%v Services loaded!\n", len(fingerprints))
+		fmt.Printf("%v Service(s) loaded!\n", len(fingerprints))
 
 		// Print the table header
 		fmt.Println("| ID | Service                               ")
@@ -194,7 +209,7 @@ func main() {
 		return
 	}
 
-	if (target == "" || service == "") {
+	if target == "" {
 		flag.Usage()
 		return
 	}
@@ -217,10 +232,14 @@ func main() {
 			continue
 		}
 
-		CheckResponse(URL, selectedService, &result, requestHeaders, timeout)
+		result.URL = URL.String()
+		result.ServiceId = service
+		result.Service = selectedService.(Fingerprint)
+
+		CheckResponse(&result, selectedService.(Fingerprint), requestHeaders, timeout)
 
 		if result.IsVulnerable {
-			fmt.Println("Is Vulnerable!")
+			fmt.Println("Is Vulnerable!", result)
 		}
 	}
 }
