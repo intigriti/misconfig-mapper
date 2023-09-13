@@ -5,7 +5,7 @@ package main
 		[X] Should accept a target name: "intigriti"
 		[X] Should enumerate potential TLDs through permutations: "intigriti.com", "intigriti.eu", "intigriti.io", "..."
 		[X] Loop over all fingerprints
-		[ ] Generate potential PoC URLs
+		[X] Generate potential PoC URLs
 		[ ] Check against fingerprint data
 		[ ] Return matched results
 */
@@ -14,19 +14,26 @@ import (
 	"os"
 	"fmt"
 	"flag"
-	"net/url"
 	"strings"
+	"net/url"
+	"net/http"
 	"encoding/json"
 )
 
 type Fingerprint struct {
-	ID					int64		`bson:"id"`
-	ServiceName			string 		`bson:"service"`
-	Description			string	 	`bson:"description"`
-	URL					any		 	`bson:"URL"`
-	ReproductionSteps	any			`bson:"reproductionSteps"`
-	Fingerprint			any			`bson:"fingerprint"`
-	Reference			string		`bson:"reference"`
+	ID					int64		`json:"id"`
+	ServiceName			string 		`json:"service"`
+	Description			string	 	`json:"description"`
+	URL					string		`json:"URL"`
+	ReproductionSteps	[]string	`json:"reproductionSteps"`
+	Fingerprints		[]string	`json:"fingerprint"`
+	Reference			string		`json:"reference"`
+}
+
+type Result struct {
+	URL					string
+	IsVulnerable		bool
+	ServiceId			int64
 }
 
 /*
@@ -35,9 +42,9 @@ type Fingerprint struct {
 			"id":					int64,
 			"service":				string,
 			"description":			string,
-			"URL":					[]string | nil,
-			"reproductionSteps":	[]string | nil,
-			"fingerprint":			[]string | nil,
+			"URL":					string,
+			"reproductionSteps":	[]string,
+			"fingerprint":			[]string,
 			"reference":			string
 		}
 	]
@@ -73,6 +80,28 @@ func LoadFingerprints() []Fingerprint {
 	return technologies
 }
 
+func ParseRequestHeaders(rawHeaders string) map[string]string {
+	requestHeaders := make(map[string]string)
+
+	headers := strings.Split(rawHeaders, ";;")
+		
+	for _, header := range headers {
+		var parts []string
+
+		if strings.Contains(header, ": ") {
+			parts = strings.SplitN(header, ": ", 2)
+		} else if strings.Contains(header, ":") {
+			parts = strings.SplitN(header, ":", 2)
+		} else {
+			continue
+		}
+
+		requestHeaders[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+	}
+
+	return requestHeaders
+}
+
 func ReturnPossibleDomains(target string) []string {
 	var possibleDomains []string
 
@@ -92,7 +121,7 @@ func ReturnPossibleDomains(target string) []string {
 
 func ReturnServiceFingerprint(id string) any {
 	for _, s := range fingerprints {
-		if fmt.Sprintf("%s", s.ID) == id {
+		if fmt.Sprintf("%v", s.ID) == id {
 			return s
 		}
 	}
@@ -100,20 +129,68 @@ func ReturnServiceFingerprint(id string) any {
 	return nil
 }
 
+func CheckResponse(URL string, result *Result, requestHeaders map[string]string, timeout float64) {
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+		Timeout: time.Duration(timeout) * time.Second,
+	}
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s", CNAME), nil)
+	if err != nil {
+		fmt.Printf("Request Error: %s (%s)\n", fmt.Sprintf("https://%s", CNAME), err)
+	}
+
+	for key, value := range requestHeaders {
+		req.Header.Set(key, value)
+	}
+
+	req.Header.Set("Connection", "close")
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("Response Error: %s (%s)\n", fmt.Sprintf("https://%s", CNAME), err)
+		return false
+	}
+	defer res.Body.Close()
+
+	body, _ := ioutil.ReadAll(res.Body)
+
+	fmt.Printf("INFO: Response body: %s (%s)\n", string(body), utils.ParseRE(fingerprint))
+
+	re := regexp.MustCompile(fmt.Sprintf(`%s`, utils.ParseRE(fingerprint))) // Transform array into regex pattern
+
+	return !!re.MatchString(fmt.Sprintf("%s", string(body)))
+}
+
 func main() {
 	targetFlag := flag.String("target", "", "Specify your target domain name or Company name: Intigriti")
 	serviceFlag := flag.String("service", "", "Specify the service ID you'd like to check for: \"1\" for Atlassian Jira Service Desk")
-	servicesFlag := flag.String("services", "", "Print all services with their associated IDs")
+	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookies: xyz...;;\"")
+	timeoutFlag := flag.Float64Var("timeout", 7.0, "Specify a timeout for each request sent in seconds (default: \"7.0\").")
+	servicesFlag := flag.Bool("services", false, "Print all services with their associated IDs")
+
 	flag.Parse()
 
 	var target string = *targetFlag
 	var service string = *serviceFlag
+	var requestHeaders map[string]string = ParseRequestHeaders(*requestHeadersFlag)
+	var timeout float64 = *timeoutFlag
 
 	fingerprints = LoadFingerprints()
 
 	if *servicesFlag {
 		fmt.Printf("%v Services loaded!\n", len(fingerprints))
-		fmt.Println(fingerprints)
+
+		// Print the table header
+		fmt.Println("| ID | Service                               ")
+		fmt.Println("|----|---------------------------------------")
+
+		// Print each row of the table
+		for _, service := range fingerprints {
+			fmt.Printf("| %-2d | %-7s\n", service.ID, service.ServiceName)
+		}
 		return
 	}
 
@@ -122,22 +199,28 @@ func main() {
 		return
 	}
 
-	fingerprint := ReturnServiceFingerprint(service)
-	if fingerprint == nil {
-		fmt.Errorf("Error: Service ID \"%v\" does not match any integrated service!\n", service)
+	selectedService := ReturnServiceFingerprint(service)
+	if selectedService == nil {
+		fmt.Printf("Error: Service ID \"%v\" does not match any integrated service!\n", service)
 		return
 	}
 
 	possibleDomains := ReturnPossibleDomains(target)
 
 	for _, domain := range possibleDomains {
-		targetURL := strings.Replace(fmt.Sprintf("%s", fingerprint.(Fingerprint).URL), "{TARGET}", fmt.Sprintf("%s", domain), -1)
+		var result Result
+		targetURL := strings.Replace(fmt.Sprintf("%v", selectedService.(Fingerprint).URL), "{TARGET}", fmt.Sprintf("%s", domain), -1)
+
 		URL, err := url.Parse(targetURL)
 		if err != nil {
-			fmt.Errorf("Error: Invalid Target URL \"%s\"... Skipping... (%v)\n", targetURL, err)
+			fmt.Printf("Error: Invalid Target URL \"%s\"... Skipping... (%v)\n", targetURL, err)
 			continue
 		}
 
-		fmt.Println(URL)
+		CheckResponse(URL, selectedService, &result, requestHeaders, timeout)
+
+		if result.IsVulnerable {
+			fmt.Println("Is Vulnerable!")
+		}
 	}
 }
