@@ -1,17 +1,5 @@
 package main
 
-/*
-	PSEUDO:
-		[X] Should accept a target name: "intigriti"
-		[X] Should enumerate potential TLDs through permutations: "intigriti.com", "intigriti.eu", "intigriti.io", "..."
-		[X] Loop over all fingerprints
-		[X] Generate potential PoC URLs
-		[X] Check against fingerprint data
-		[X] Return matched results
-
-	22:20 - 22:35
-*/
-
 import (
 	"os"
 	"fmt"
@@ -181,7 +169,7 @@ func CheckResponse(result *Result, service Fingerprint, requestHeaders map[strin
 
 func main() {
 	targetFlag := flag.String("target", "", "Specify your target domain name or Company name: Intigriti")
-	serviceFlag := flag.Int64("service", 0, "Specify the service ID you'd like to check for: \"1\" for Atlassian Jira Service Desk")
+	serviceFlag := flag.Int64("service", 0, "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Service Desk")
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookies: xyz...;;\"")
 	timeoutFlag := flag.Float64("timeout", 7.0, "Specify a timeout for each request sent in seconds (default: \"7.0\").")
 	servicesFlag := flag.Bool("services", false, "Print all services with their associated IDs")
