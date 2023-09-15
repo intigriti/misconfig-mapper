@@ -68,5 +68,5 @@ $ ./main -services
 Learn more on how to contribute to the project
 
 # License
-
+Project's License
 
