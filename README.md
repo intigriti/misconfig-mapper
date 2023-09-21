@@ -52,6 +52,8 @@ Usage of main:
 $ ./main -target intigriti -service 0
 ```
 
+![example.png](example.png)
+
 # Services
 Get a list of supported services:
 
