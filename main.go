@@ -211,7 +211,7 @@ func main() {
 	targetPermutationsFlag := permutationsCmd.String("target", "", "Specify your target domain name or company name: Intigriti")
 
 	// enumerate subcommand
-	//enumerateCmd := flag.NewFlagSet("enumerate", flag.ExitOnError)
+	enumerateCmd := flag.NewFlagSet("enumerate", flag.ExitOnError)
 
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: ./main <subcommand> [options]")
@@ -241,7 +241,7 @@ func main() {
 
 			os.Exit(0)
 		case "enumerate":
-			permutationsCmd.Parse(os.Args[2:])
+			enumerateCmd.Parse(os.Args[2:])
 
 			// Enumerate
 
