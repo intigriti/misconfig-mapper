@@ -46,6 +46,7 @@ type Result struct {
 */
 
 var fingerprints []Fingerprint
+var selectedServices []Fingerprint
 
 var suffixes []string = []string{
 	"com",
@@ -128,7 +129,7 @@ func ReturnPossibleDomains(target string) []string {
 	return possibleDomains
 }
 
-func ReturnServiceFingerprint(id string) any {
+func ReturnServiceFingerprint(id string) interface{} {
 	for _, s := range fingerprints {
 		if fmt.Sprintf("%v", s.ID) == id {
 			return s
@@ -200,7 +201,7 @@ func PrintResult(result Result) {
 
 func main() {
 	targetFlag := flag.String("target", "", "Specify your target domain name or company name: Intigriti")
-	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Service Desk.") // Add support for wildcards
+	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Service Desk. Wildcards are also accepted to check for all services at once.")
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookies: xyz...;;\"")
 	timeoutFlag := flag.Float64("timeout", 7.0, "Specify a timeout for each request sent in seconds (default: \"7.0\").")
 	servicesFlag := flag.Bool("services", false, "Print all services with their associated IDs")
@@ -279,39 +280,51 @@ func main() {
 		InsecureSkipVerify: true,
 	}
 
-	selectedService := ReturnServiceFingerprint(service)
-	if selectedService == nil {
-		fmt.Printf("[-] Error: Service ID \"%v\" does not match any integrated service!\n", service)
-		return
+	if service == "*" {
+		selectedServices = fingerprints
+	} else {
+		s := ReturnServiceFingerprint(service)
+		if s == nil {
+			fmt.Printf("[-] Error: Service ID \"%v\" does not match any integrated service!\n", service)
+			return
+		}
+	
+		selectedServices = append(selectedServices, s.(Fingerprint))
 	}
 
 	possibleDomains := ReturnPossibleDomains(target)
 
 	fmt.Printf("[+] Checking %v possible target URLs...\n", len(possibleDomains))
 
-	for _, domain := range possibleDomains {
-		var result Result
-		targetURL := strings.Replace(fmt.Sprintf("%v", selectedService.(Fingerprint).URL), "{TARGET}", fmt.Sprintf("%s", domain), -1)
+	fmt.Println("Selected services:", selectedServices)
 
-		URL, err := url.Parse(targetURL)
-		if err != nil {
-			fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping... (%v)\n", targetURL, err)
-			continue // Skip invalid URLs and move on to the next one
-		}
+	return
 
-		result.URL = URL.String()
-		result.ServiceId = service
-		result.Service = selectedService.(Fingerprint)
-		result.IsVulnerable = false // Default value
+	for _, selectedService := range selectedServices {
+		for _, domain := range possibleDomains {
+			var result Result
+			targetURL := strings.Replace(fmt.Sprintf("%v", selectedService.URL), "{TARGET}", fmt.Sprintf("%s", domain), -1)
 
-		CheckResponse(&result, selectedService.(Fingerprint), requestHeaders, timeout)
+			URL, err := url.Parse(targetURL)
+			if err != nil {
+				fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping... (%v)\n", targetURL, err)
+				continue // Skip invalid URLs and move on to the next one
+			}
 
-		if result.IsVulnerable {
-			PrintResult(result)
+			result.URL = URL.String()
+			result.ServiceId = service
+			result.Service = selectedService
+			result.IsVulnerable = false // Default value
 
-			break
-		} else {
-			fmt.Println("[-] Not vulnerable", result.URL)
+			CheckResponse(&result, selectedService, requestHeaders, timeout)
+
+			if result.IsVulnerable {
+				PrintResult(result)
+
+				break
+			} else {
+				fmt.Println("[-] Not vulnerable", result.URL)
+			}
 		}
 	}
 }
