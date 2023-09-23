@@ -47,12 +47,15 @@ type Result struct {
 
 var fingerprints []Fingerprint
 
-var TLDs []string = []string{
+var suffixes []string = []string{
 	"com",
 	"net",
 	"org",
 	"io",
 	"fr",
+	"org",
+	"ltd",
+	"app",
 	// Add more TLDs as needed
 }
 
@@ -114,13 +117,13 @@ func ReturnPossibleDomains(target string) []string {
 	// Remove leading and trailing spaces and convert to lowercase
 	target = strings.TrimSpace(strings.ToLower(target))
 
-    // Generate domain names by combining the keyword with each TLD
-	for _, TLD := range TLDs {
-		domain := fmt.Sprintf(`%s.%s`, target, TLD)
-		possibleDomains = append(possibleDomains, domain)
+    // Generate domain names by combining the keyword with each suffix
+	for _, s := range suffixes {
+		for _, c := range []string{".", "-", ""} {
+			domain := fmt.Sprintf(`%s%s%s`, target, c, s) // {target}{character}{suffix}
+			possibleDomains = append(possibleDomains, domain)
+		}
 	}
-
-	// Other mutations??
 
 	return possibleDomains
 }
@@ -196,13 +199,55 @@ func PrintResult(result Result) {
 }
 
 func main() {
-	targetFlag := flag.String("target", "", "Specify your target domain name or Company name: Intigriti")
+	targetFlag := flag.String("target", "", "Specify your target domain name or company name: Intigriti")
 	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Service Desk.") // Add support for wildcards
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookies: xyz...;;\"")
 	timeoutFlag := flag.Float64("timeout", 7.0, "Specify a timeout for each request sent in seconds (default: \"7.0\").")
 	servicesFlag := flag.Bool("services", false, "Print all services with their associated IDs")
 
-	flag.Parse()
+	// permutations subcommand
+	permutationsCmd := flag.NewFlagSet("permutations", flag.ExitOnError)
+	targetPermutationsFlag := permutationsCmd.String("target", "", "Specify your target domain name or company name: Intigriti")
+
+	// enumerate subcommand
+	//enumerateCmd := flag.NewFlagSet("enumerate", flag.ExitOnError)
+
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: ./main <subcommand> [options]")
+		fmt.Println("Available subcommands:")
+		fmt.Printf("\tpermutations\tPrint out possible organization names for a company name\n\n")
+		fmt.Printf("\tenumerate\tEnumerate services for a company\n\n")
+		flag.Usage()
+		permutationsCmd.Usage()
+		os.Exit(1)
+	}
+
+	switch os.Args[1] {
+		case "permutations":
+			permutationsCmd.Parse(os.Args[2:])
+			target := *targetPermutationsFlag
+			
+			if target == "" {
+				permutationsCmd.Usage()
+				return
+			}
+			
+			possibleDomains := ReturnPossibleDomains(target)
+
+			for _, e := range possibleDomains {
+				fmt.Println(e)
+			}
+
+			os.Exit(0)
+		case "enumerate":
+			permutationsCmd.Parse(os.Args[2:])
+
+			// Enumerate
+
+			os.Exit(1)
+	    default:
+			flag.Parse()
+	}
 
 	var target string = *targetFlag
 	var service string = *serviceFlag
