@@ -33,7 +33,7 @@ type Result struct {
 	Exists				bool		// Used to report back in case the instance exists
 	Vulnerable			bool		// Used to report back in case the instance is vulnerable
 	ServiceId			string		// Service ID
-	Service				Service // Service struct
+	Service				Service		// Service struct
 }
 
 /* TYPES/ */
@@ -242,10 +242,10 @@ func main() {
 
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: ./main <subcommand> [options]")
-		fmt.Println("Available subcommands:")
+		fmt.Println("\nAvailable subcommands:")
 		fmt.Printf("\tpermutations\tPrint out possible organization names for a company name\n\n")
-		fmt.Printf("\tenumerate\tEnumerate services for a company\n\n")
 		flag.Usage()
+		fmt.Printf("\n")
 		permutationsCmd.Usage()
 		os.Exit(1)
 	}

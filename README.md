@@ -38,26 +38,29 @@ $ go build main.go -o main
 
 # Usage
 ```
-Usage of ./main:
+Usage: ./main <subcommand> [options]
 
 Available subcommands:
+	permutations  Print out possible organization names for a company name
 
-  permutations
-    Get a list of permutations for a given company name
+Usage of ./main:
+	-headers string
+			Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookies: xyz...;;"
+	-passive-only
+			Only check for existing instances (don't check for misconfigurations)
+	-service string
+			Specify the service ID you'd like to check for: "0" for Atlassian Jira Service Desk. Wildcards are also accepted to check for all services at once. (default "0")
+	-services
+			Print all services with their associated IDs
+	-target string
+			Specify your target domain name or company name: Intigriti
+	-timeout float
+			Specify a timeout for each request sent in seconds (default: "7.0"). (default 7)
 
 
-  -enumerate
-      Only check for existing instances (don't check for misconfigurations)
-  -headers string
-      Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookies: xyz...;;"
-  -service string
-      Specify the service ID you'd like to check for: "0" for Atlassian Jira Service Desk. Wildcards are also accepted to check for all services at once. (default "0")
-  -services
-      Print all services with their associated IDs
-  -target string
-      Specify your target domain name or company name: Intigriti
-  -timeout float
-      Specify a timeout for each request sent in seconds (default: "7.0"). (default 7)
+Usage of permutations:
+	-target string
+			Specify your target domain name or company name: Intigriti
 ```
 
 ## Examples
@@ -81,29 +84,35 @@ $ ./main -services
 ```
 
 # Templates
-You can easily create and add your own templates to technologies.json file:
+You can easily create and add your own templates to services.json file:
+
 ```json
 {
-  "id":                 0,
-  "baseURL":            "{BASE_URL}",
-  "path":               "{PATH}",
-  "service":            "{SERVICE_NAME}",
-  "description":        "{DESCRIPTION}",
-  "reproductionSteps":  [
-                          "{STEP_1}",
-                          "{STEP_2}",
-                          "..."
-  ],
-  "fingerprints":       [
-                          "{KEYWORD_1}",
-                          "{KEYWORD_2}",
-                          "..."
-  ],
-  "references":         [
-                          "{REFERENCE_1}",
-                          "{REFERENCE_2}",
-                          "..."
-  ]
+	"id":									0,
+	"baseURL":						"{BASE_URL}",
+	"path":								"{PATH}",
+	"service":						"{SERVICE_NAME}",
+	"description":				"{DESCRIPTION}",
+	"reproductionSteps":	[
+													"{STEP_1}",
+													"{STEP_2}",
+													"..."
+	],
+	"passive":						[
+													"{KEYWORD_1}",
+													"{KEYWORD_2}",
+													"..."
+	],
+	"active":							[
+													"{KEYWORD_1}",
+													"{KEYWORD_2}",
+													"..."
+	],
+	"references":					[
+													"{REFERENCE_1}",
+													"{REFERENCE_2}",
+													"..."
+	]
 }
 ```
 
