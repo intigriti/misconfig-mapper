@@ -16,14 +16,15 @@ import (
 
 /* /TYPES */
 
-type Fingerprint struct {
+type Service struct {
 	ID					int64		`json:"id"`
 	BaseURL				string		`json:"baseURL"`
 	Path				string		`json:"path"`
 	ServiceName			string 		`json:"service"`
 	Description			string	 	`json:"description"`
 	ReproductionSteps	[]string	`json:"reproductionSteps"`
-	Fingerprints		[]string	`json:"fingerprints"`
+	Passive				[]string	`json:"passive"`
+	Active				[]string	`json:"active"`
 	References			[]string	`json:"references"`
 }
 
@@ -32,7 +33,7 @@ type Result struct {
 	Exists				bool		// Used to report back in case the instance exists
 	Vulnerable			bool		// Used to report back in case the instance is vulnerable
 	ServiceId			string		// Service ID
-	Service				Fingerprint // Fingerprint struct
+	Service				Service // Service struct
 }
 
 /* TYPES/ */
@@ -46,14 +47,15 @@ type Result struct {
 			"service":				string,
 			"description":			string,
 			"reproductionSteps":	[]string,
-			"fingerprints":			[]string,
+			"passive":				[]string,
+			"active":				[]string,
 			"references":			[]string
 		}
 	]
 */
 
-var fingerprints []Fingerprint
-var selectedServices []Fingerprint
+var services []Service
+var selectedServices []Service
 
 var suffixes []string = []string{
 	"com",
@@ -67,23 +69,23 @@ var suffixes []string = []string{
 	// Add more TLDs as needed
 }
 
-func LoadFingerprints() []Fingerprint {
-	var technologies []Fingerprint
+func LoadServices() []Service {
+	var services []Service
 
-	file, err := os.Open("./fingerprints.json")
+	file, err := os.Open("./services.json")
 	if err != nil {
-		fmt.Println("ERROR: Failed opening file \"./fingerprints.json\":", err)
-		return technologies
+		fmt.Println("ERROR: Failed opening file \"./services.json\":", err)
+		return services
 	}
 	defer file.Close()
 
 	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&technologies); err != nil {
+	if err := decoder.Decode(&services); err != nil {
 		fmt.Println("ERROR: Failed decoding JSON file:", err)
-		return technologies
+		return services
 	}
 
-	return technologies
+	return services
 }
 
 func ParseRequestHeaders(rawHeaders string) map[string]string {
@@ -136,8 +138,8 @@ func ReturnPossibleDomains(target string) []string {
 	return possibleDomains
 }
 
-func ReturnServiceFingerprint(id string) interface{} {
-	for _, s := range fingerprints {
+func GetService(id string) interface{} {
+	for _, s := range services {
 		if fmt.Sprintf("%v", s.ID) == id {
 			return s
 		}
@@ -146,7 +148,7 @@ func ReturnServiceFingerprint(id string) interface{} {
 	return nil
 }
 
-func CheckResponse(result *Result, service Fingerprint, enumerate bool, requestHeaders map[string]string, timeout float64) {
+func CheckResponse(result *Result, service Service, passiveOnly bool, requestHeaders map[string]string, timeout float64) {
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			// Follow max 4 redirects
@@ -186,13 +188,16 @@ func CheckResponse(result *Result, service Fingerprint, enumerate bool, requestH
 
 		//fmt.Printf("INFO: Response body: %s (%s)\n", string(body), ParseFingerprints(service.Fingerprints))
 
-		pattern := fmt.Sprintf(`%s`, ParseRegex(service.Fingerprints)) // Transform array into regex pattern
-		re := regexp.MustCompile(pattern)
+		if passiveOnly {
+			pattern := fmt.Sprintf(`%s`, ParseRegex(service.Passive)) // Transform array into regex pattern
+			re := regexp.MustCompile(pattern)
 
-		if enumerate {
 			result.Exists = !!re.MatchString(fmt.Sprintf("%s", string(body)))
 			return
 		}
+
+		pattern := fmt.Sprintf(`%s`, ParseRegex(service.Active)) // Transform array into regex pattern
+		re := regexp.MustCompile(pattern)
 
 		result.Vulnerable = !!re.MatchString(fmt.Sprintf("%s", string(body)))
 	}
@@ -200,8 +205,8 @@ func CheckResponse(result *Result, service Fingerprint, enumerate bool, requestH
 	return
 }
 
-func PrintResult(result Result, enumerate bool) {
-	if enumerate {
+func PrintResult(result Result, passiveOnly bool) {
+	if passiveOnly {
 		fmt.Printf("[+] 1 %s Instance found!\n", result.Service.ServiceName)
 	} else {
 		fmt.Println("[+] 1 Vulnerable result found!")
@@ -226,7 +231,7 @@ func PrintResult(result Result, enumerate bool) {
 func main() {
 	targetFlag := flag.String("target", "", "Specify your target domain name or company name: Intigriti")
 	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Service Desk. Wildcards are also accepted to check for all services at once.")
-	enumerateFlag := flag.Bool("enumerate", false, "Only check for existing instances (don't check for misconfigurations)")
+	passiveOnlyFlag := flag.Bool("passive-only", false, "Only check for existing instances (don't check for misconfigurations)")
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookies: xyz...;;\"")
 	timeoutFlag := flag.Float64("timeout", 7.0, "Specify a timeout for each request sent in seconds (default: \"7.0\").")
 	servicesFlag := flag.Bool("services", false, "Print all services with their associated IDs")
@@ -268,21 +273,21 @@ func main() {
 
 	var target string = *targetFlag
 	var service string = *serviceFlag
-	var enumerate bool = *enumerateFlag
+	var passiveOnly bool = *passiveOnlyFlag
 	var requestHeaders map[string]string = ParseRequestHeaders(*requestHeadersFlag)
 	var timeout float64 = *timeoutFlag
 
-	fingerprints = LoadFingerprints()
+	services = LoadServices()
 
 	if *servicesFlag {
-		fmt.Printf("[+] %v Service(s) loaded!\n", len(fingerprints))
+		fmt.Printf("[+] %v Service(s) loaded!\n", len(services))
 
 		// Print the table header
 		fmt.Println("| ID | Service                               ")
 		fmt.Println("|----|---------------------------------------")
 
 		// Print each row of the table
-		for _, service := range fingerprints {
+		for _, service := range services {
 			fmt.Printf("| %-2d | %-7s\n", service.ID, service.ServiceName)
 		}
 		return
@@ -298,15 +303,15 @@ func main() {
 	}
 
 	if service == "*" {
-		selectedServices = fingerprints
+		selectedServices = services
 	} else {
-		s := ReturnServiceFingerprint(service)
+		s := GetService(service)
 		if s == nil {
 			fmt.Printf("[-] Error: Service ID \"%v\" does not match any integrated service!\n", service)
 			return
 		}
 	
-		selectedServices = append(selectedServices, s.(Fingerprint))
+		selectedServices = append(selectedServices, s.(Service))
 	}
 
 	possibleDomains := ReturnPossibleDomains(target)
@@ -332,10 +337,10 @@ func main() {
 			result.Exists = false // Default value
 			result.Vulnerable = false // Default value
 
-			CheckResponse(&result, selectedService, enumerate, requestHeaders, timeout)
+			CheckResponse(&result, selectedService, passiveOnly, requestHeaders, timeout)
 
 			if result.Exists || result.Vulnerable {
-				PrintResult(result, enumerate)
+				PrintResult(result, passiveOnly)
 
 				break
 			} else {

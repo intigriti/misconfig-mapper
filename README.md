@@ -2,6 +2,11 @@
 
 Scanner for [Project1](#)
 
+# Project Name (een aantal suggesties):
+- Service Scanner / ServiceScan
+- Service Attacker / ServiceAttack
+- Active Service
+
 # Installation
 
 1. Clone this repository
