@@ -139,4 +139,62 @@
 		],
 		"references": []
 	},
+	{
+		"id": 6,
+		"baseURL": "https://gitlab.{TARGET}",
+		"path": "/explore/snippets",
+		"service": "Gitlab Private Source Code Snippets Exposed",
+		"description": "Your GitLab instance may expose sensitive source code or private repositories if read permissions on Project Snippets have been misconfigured.",
+		"reproductionSteps": [
+			"Visit the URL",
+			"Observe the response and follow the steps to check public snippets. View the references for more information."
+		],
+		"passive": [
+			"Explore GitLab",
+			"Discover projects, groups and snippets. Share your projects with others",
+			"No snippets found"
+		],
+		"active": [
+			"Explore snippets",
+			"Created",
+			"updated"
+		],
+		"references": []
+	},
+	{
+		"id": 7,
+		"baseURL": "https://{TARGET}",
+		"path": "/node/1",
+		"service": "Drupal Nodes with Misconfigured Access Controls",
+		"description": "Drupal Nodes can contain sensitive data and if permissions are not enforced, they can leak private data to unauthorized users.",
+		"reproductionSteps": [
+			"Visit the URL",
+			"Observe the response and follow the steps to check public snippets. View the references for more information."
+		],
+		"passive": [
+			"Drupal"
+		],
+		"active": [
+			"node/"
+		],
+		"references": []
+	},
+	{
+		"id": 8,
+		"baseURL": "https://symfony.{TARGET}",
+		"path": "/node/1",
+		"service": "Drupal Nodes with Misconfigured Access Controls",
+		"description": "Drupal Nodes can contain sensitive data and if permissions are not enforced, they can leak private data to unauthorized users.",
+		"reproductionSteps": [
+			"Visit the URL",
+			"Observe the response and follow the steps to check public snippets. View the references for more information."
+		],
+		"passive": [
+			"Drupal"
+		],
+		"active": [
+			"node/"
+		],
+		"references": []
+	}
 ]
