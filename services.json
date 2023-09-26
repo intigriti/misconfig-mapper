@@ -3,8 +3,8 @@
 		"id": 0,
 		"baseURL": "https://{TARGET}.atlassian.net",
 		"path": "/secure/Signup!default.jspa",
-		"service": "Atlassian Jira Open Signup",
-		"description": "Atlassian Jira Open Signup",
+		"service": "Atlassian Jira Open Signups",
+		"description": "Atlassian Jira Open Signups",
 		"reproductionSteps": [
 			"Visit the URL",
 			"Follow the steps in the references"

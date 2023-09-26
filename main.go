@@ -229,51 +229,18 @@ func PrintResult(result Result, passiveOnly bool) {
 }
 
 func main() {
-	targetFlag := flag.String("target", "", "Specify your target domain name or company name: Intigriti")
-	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Service Desk. Wildcards are also accepted to check for all services at once.")
-	passiveOnlyFlag := flag.Bool("passive-only", false, "Only check for existing instances (don't check for misconfigurations)")
+	targetFlag := flag.String("target", "", "Specify your target domain name or company/organization name: \"intigriti.com\" or \"intigriti\"")
+	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services.")
+	passiveOnlyFlag := flag.Bool("passive-only", false, "Only check for existing instances (don't check for misconfigurations). Default: \"false\"")
+	permutationsFlag := flag.Bool("permutations", true, "Enable permutations and look for several other keywords of your target. Default: \"true\"")
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookies: xyz...;;\"")
 	timeoutFlag := flag.Float64("timeout", 7.0, "Specify a timeout for each request sent in seconds (default: \"7.0\").")
 	servicesFlag := flag.Bool("services", false, "Print all services with their associated IDs")
 
-	// permutations subcommand
-	permutationsCmd := flag.NewFlagSet("permutations", flag.ExitOnError)
-	targetPermutationsFlag := permutationsCmd.String("target", "", "Specify your target domain name or company name: Intigriti")
-
-	if len(os.Args) < 2 {
-		fmt.Println("Usage: ./main <subcommand> [options]")
-		fmt.Println("\nAvailable subcommands:")
-		fmt.Printf("\tpermutations\tPrint out possible organization names for a company name\n\n")
-		flag.Usage()
-		fmt.Printf("\n")
-		permutationsCmd.Usage()
-		os.Exit(1)
-	}
-
-	switch os.Args[1] {
-		case "permutations":
-			permutationsCmd.Parse(os.Args[2:])
-			target := *targetPermutationsFlag
-			
-			if target == "" {
-				permutationsCmd.Usage()
-				return
-			}
-			
-			possibleDomains := ReturnPossibleDomains(target)
-
-			for _, e := range possibleDomains {
-				fmt.Println(e)
-			}
-
-			os.Exit(0)
-	    default:
-			flag.Parse()
-	}
-
 	var target string = *targetFlag
 	var service string = *serviceFlag
 	var passiveOnly bool = *passiveOnlyFlag
+	var permutations bool = *permutationsFlag
 	var requestHeaders map[string]string = ParseRequestHeaders(*requestHeadersFlag)
 	var timeout float64 = *timeoutFlag
 
@@ -314,7 +281,15 @@ func main() {
 		selectedServices = append(selectedServices, s.(Service))
 	}
 
-	possibleDomains := ReturnPossibleDomains(target)
+	var possibleDomains []string
+
+	if !!permutations {
+		// Perform permutations on target and scan all of them
+		possibleDomains = ReturnPossibleDomains(target)
+	} else {
+		// Only perfom scan on the supplied target flag value
+		possibleDomains = append(possibleDomains, target)
+	}
 
 	fmt.Printf("[+] Checking %v possible target URLs...\n", len(possibleDomains))
 

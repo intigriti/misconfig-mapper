@@ -38,29 +38,21 @@ $ go build main.go -o main
 
 # Usage
 ```
-Usage: ./main <subcommand> [options]
-
-Available subcommands:
-	permutations  Print out possible organization names for a company name
-
 Usage of ./main:
-	-headers string
-			Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookies: xyz...;;"
-	-passive-only
-			Only check for existing instances (don't check for misconfigurations)
-	-service string
-			Specify the service ID you'd like to check for: "0" for Atlassian Jira Service Desk. Wildcards are also accepted to check for all services at once. (default "0")
-	-services
-			Print all services with their associated IDs
-	-target string
-			Specify your target domain name or company name: Intigriti
-	-timeout float
-			Specify a timeout for each request sent in seconds (default: "7.0"). (default 7)
-
-
-Usage of permutations:
-	-target string
-			Specify your target domain name or company name: Intigriti
+  -headers string
+    	Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookies: xyz...;;"
+  -passive-only
+    	Only check for existing instances (don't check for misconfigurations). Default: "false"
+  -permutations
+    	Enable permutations and look for several other keywords of your target. Default: "true" (default true)
+  -service string
+    	Specify the service ID you'd like to check for: "0" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services. (default "0")
+  -services
+    	Print all services with their associated IDs
+  -target string
+    	Specify your target domain name or company/organization name: "intigriti.com" or "intigriti"
+  -timeout float
+    	Specify a timeout for each request sent in seconds (default: "7.0"). (default 7)
 ```
 
 ## Examples
