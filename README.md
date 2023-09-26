@@ -33,17 +33,26 @@ $ go build main.go -o main
 
 # Usage
 ```
-Usage of main:
+Usage of ./main:
+
+Available subcommands:
+
+  permutations
+    Get a list of permutations for a given company name
+
+
+  -enumerate
+      Only check for existing instances (don't check for misconfigurations)
   -headers string
-    	Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookies: xyz...;;"
-  -service int
-    	Specify the service ID you'd like to check for: "0" for Atlassian Jira Service Desk
+      Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookies: xyz...;;"
+  -service string
+      Specify the service ID you'd like to check for: "0" for Atlassian Jira Service Desk. Wildcards are also accepted to check for all services at once. (default "0")
   -services
-    	Print all services with their associated IDs
+      Print all services with their associated IDs
   -target string
-    	Specify your target domain name or Company name: Intigriti
+      Specify your target domain name or company name: Intigriti
   -timeout float
-    	Specify a timeout for each request sent in seconds (default: "7.0"). (default 7)
+      Specify a timeout for each request sent in seconds (default: "7.0"). (default 7)
 ```
 
 ## Examples
@@ -64,6 +73,33 @@ $ ./main -services
 |----|---------------------------------------
 | 0  | Atlassian Jira Service Desk
 ...
+```
+
+# Templates
+You can easily create and add your own templates to technologies.json file:
+```json
+{
+  "id":                 0,
+  "baseURL":            "{BASE_URL}",
+  "path":               "{PATH}",
+  "service":            "{SERVICE_NAME}",
+  "description":        "{DESCRIPTION}",
+  "reproductionSteps":  [
+                          "{STEP_1}",
+                          "{STEP_2}",
+                          "..."
+  ],
+  "fingerprints":       [
+                          "{KEYWORD_1}",
+                          "{KEYWORD_2}",
+                          "..."
+  ],
+  "references":         [
+                          "{REFERENCE_1}",
+                          "{REFERENCE_2}",
+                          "..."
+  ]
+}
 ```
 
 # Contributions

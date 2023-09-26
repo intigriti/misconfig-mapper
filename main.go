@@ -318,12 +318,7 @@ func main() {
 	for _, selectedService := range selectedServices {
 		for _, domain := range possibleDomains {
 			var result Result
-			targetURL := strings.Replace(fmt.Sprintf("%v", selectedService.BaseURL), "{TARGET}", fmt.Sprintf("%s", domain), -1)
-		
-			// If the user opted-in to only enumerate services, then request the baseURL only (without the path)
-			if !enumerate {
-				targetURL = fmt.Sprintf("%s%v", targetURL, selectedService.Path)
-			}
+			targetURL := strings.Replace(fmt.Sprintf("%v%v", selectedService.BaseURL, selectedService.Path), "{TARGET}", fmt.Sprintf("%s", domain), -1)
 
 			URL, err := url.Parse(targetURL)
 			if err != nil {
