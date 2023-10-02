@@ -69,23 +69,23 @@ var suffixes []string = []string{
 	// Add more TLDs as needed
 }
 
-func LoadServices() []Service {
+func LoadServices() ([]Service, error) {
 	var services []Service
 
 	file, err := os.Open("./services.json")
 	if err != nil {
 		fmt.Println("ERROR: Failed opening file \"./services.json\":", err)
-		return services
+		return services, err
 	}
 	defer file.Close()
 
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&services); err != nil {
 		fmt.Println("ERROR: Failed decoding JSON file:", err)
-		return services
+		return services, err
 	}
 
-	return services
+	return services, nil
 }
 
 func ParseRequestHeaders(rawHeaders string) map[string]string {
@@ -237,6 +237,8 @@ func main() {
 	timeoutFlag := flag.Float64("timeout", 7.0, "Specify a timeout for each request sent in seconds (default: \"7.0\").")
 	servicesFlag := flag.Bool("services", false, "Print all services with their associated IDs")
 
+	flag.Parse()
+
 	var target string = *targetFlag
 	var service string = *serviceFlag
 	var passiveOnly bool = *passiveOnlyFlag
@@ -244,7 +246,7 @@ func main() {
 	var requestHeaders map[string]string = ParseRequestHeaders(*requestHeadersFlag)
 	var timeout float64 = *timeoutFlag
 
-	services = LoadServices()
+	services, _ = LoadServices()
 
 	if *servicesFlag {
 		fmt.Printf("[+] %v Service(s) loaded!\n", len(services))
@@ -272,6 +274,7 @@ func main() {
 	if service == "*" {
 		selectedServices = services
 	} else {
+		fmt.Printf("Service: \"%v\", %T\n", service, service)
 		s := GetService(service)
 		if s == nil {
 			fmt.Printf("[-] Error: Service ID \"%v\" does not match any integrated service!\n", service)
@@ -292,8 +295,6 @@ func main() {
 	}
 
 	fmt.Printf("[+] Checking %v possible target URLs...\n", len(possibleDomains))
-
-	//fmt.Println("Selected services:", selectedServices)
 
 	for _, selectedService := range selectedServices {
 		for _, domain := range possibleDomains {
