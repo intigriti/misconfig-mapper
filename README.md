@@ -88,22 +88,22 @@ You can easily create and add your own templates to services.json file:
 	"reproductionSteps":	[
 		"{STEP_1}", 
 		"{STEP_2}", 
-		...
+		"..."
 	],
 	"passive":		[
 		"{KEYWORD_1}",
 		"{KEYWORD_2}",
-		...
+		"..."
 	],
 	"active":		[
 		"{KEYWORD_1}",
 		"{KEYWORD_2}",
-		...
+		"..."
 	],
 	"references":		[
 		"{REFERENCE_1}",
 		"{REFERENCE_2}",
-		...
+		"..."
 	]
 }
 ```
