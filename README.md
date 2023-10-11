@@ -4,7 +4,7 @@ A list of with the most common misconfigurations among popular services used by 
 
 Curated by @INTIGRITI for the community!
 
-![image](https://github.com/novasecurityio/project1-scanner/assets/45142718/74d023cc-0b33-4d10-9e8e-4774e50f2b34)
+![image](./images/logo.png)
 
 # Project Name (een aantal suggesties):
 - Service Scanner / ServiceScan
@@ -63,7 +63,7 @@ $ go version
 $ ./main -target "yourcompanyname" -service "*"
 ```
 
-<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="./images/example_1.png" alt=""><figcaption></figcaption></figure>
 
 **Example 2:** Only perform passive tests to enumerate all third-party services
 
@@ -71,7 +71,7 @@ $ ./main -target "yourcompanyname" -service "*"
 $ ./main -target "yourcompanyname" -service "*" -passive-only
 ```
 
-<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="./images/example_2.png" alt=""><figcaption></figcaption></figure>
 
 **Example 3:** Only test for 1 specific service
 
@@ -79,7 +79,7 @@ $ ./main -target "yourcompanyname" -service "*" -passive-only
 $ ./main -target "yourcompanyname" -service "1"
 ```
 
-<figure><img src="../.gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="./images/example_3.png" alt=""><figcaption></figcaption></figure>
 
 **Example 4:** Print out all loaded services
 
@@ -87,7 +87,7 @@ $ ./main -target "yourcompanyname" -service "1"
 $ ./main -services
 ```
 
-<figure><img src="../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="./images/example_4.png" alt=""><figcaption></figcaption></figure>
 
 You can additionally also pass request headers using the `-headers` flag to comply with any request requirements (separate each header using a **double semi-colon**):
 
