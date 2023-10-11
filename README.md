@@ -1,6 +1,10 @@
-# project1-scanner
+# ServiceScanner
 
-Scanner for [Project1](#)
+A list of with the most common misconfigurations among popular services used by bug bounty targets and online (software) companies!
+
+Curated by @INTIGRITI for the community!
+
+![image](https://github.com/novasecurityio/project1-scanner/assets/45142718/74d023cc-0b33-4d10-9e8e-4774e50f2b34)
 
 # Project Name (een aantal suggesties):
 - Service Scanner / ServiceScan
