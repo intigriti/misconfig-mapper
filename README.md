@@ -178,7 +178,7 @@ Example: https://{TARGET}.example.com will allow the tool to look for:
 
 The `path` field is used to check whether the service is vulnerable or not by observing the response.
 
-#### Additional Note:
+##### Additional Note:
 The CLI tool can auto-detect and replace the **"{TARGET}"** template variable with the target provided using the target flag.\
 \
 Example: /app/{TARGET} will allow the tool to look for:
@@ -188,11 +188,13 @@ Example: /app/{TARGET} will allow the tool to look for:
 * https://example.com/app/yourcompanyname-eu
 * ...
 
+
 #### **Service:**
 
 **Type:** string
 
 The `service` field is used to display the service name in the CLI output results to easily identify what service is currently being scanned for.
+
 
 #### **Description:**
 
@@ -200,14 +202,16 @@ The `service` field is used to display the service name in the CLI output result
 
 `description` field is used to display the service description in the CLI output results once a service has been enumerated or identified and validated to be vulnerable.
 
+
 #### **Reproduction Steps:**
 
 **Type:** string array
 
 The `reproductionSteps` field is used to report back on how to reproduce the found misconfiguration. These steps are derived from this documentation.
 
-#### Additional Note:
+##### Additional Note:
 Each step should be in a separate array entry. You can specify as many steps as you'd like to.
+
 
 #### **Passive:**
 
@@ -215,11 +219,13 @@ Each step should be in a separate array entry. You can specify as many steps as 
 
 The `passive` field is used to enumerate & validate the existence of a third-party service for your target. Make sure to define strict keywords to minimize the chances of false positive results.
 
+
 #### **Active:**
 
 **Type:** string array
 
 The `active` field is used to validate the existence of a misconfigured third-party service for your target. Make sure to define strict keywords to minimize the chances of false positive results.
+
 
 #### **References:**
 
@@ -227,12 +233,12 @@ The `active` field is used to validate the existence of a misconfigured third-pa
 
 `references` field is used to provide references once a service has been enumerated or found to be misconfigured. These references are derived from this documentation.
 
-#### Additional Note:
+##### Additional Note:
 Each reference should be in a separate array entry. You can specify as many references as you'd like to.
 
+
 # Contributions
-Learn more on how to contribute to the project
+Learn more on how to contribute to the project.
 
 # License
-Project's License
-
+This project is licensed and available under the {LICENSE} license.
