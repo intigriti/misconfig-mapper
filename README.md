@@ -198,6 +198,13 @@ Example: /app/{TARGET} will allow the tool to look for:
 
 **Type:** string
 
+The `service` field is used to identify the service when the `-service` flag is passed. This should be a string value that corresponds to one of the loaded services.
+
+
+#### **ServiceName:**
+
+**Type:** string
+
 The `service` field is used to display the service name in the CLI output results to easily identify what service is currently being scanned for.
 
 
