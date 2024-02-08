@@ -21,7 +21,8 @@ type Service struct {
 	ID					int64		`json:"id"`
 	BaseURL				string		`json:"baseURL"`
 	Path				string		`json:"path"`
-	ServiceName			string 		`json:"service"`
+	Service				string		`json:"service"`
+	ServiceName			string 		`json:"serviceName"`
 	Description			string	 	`json:"description"`
 	ReproductionSteps	[]string	`json:"reproductionSteps"`
 	Passive				[]string	`json:"passive"`
@@ -139,17 +140,23 @@ func ReturnPossibleDomains(target string) []string {
 	return possibleDomains
 }
 
-func GetService(id string) interface{} {
-	for _, s := range services {
-		if fmt.Sprintf("%v", s.ID) == id {
-			return s
+func GetService(id string, services []Service) interface{} {
+	s := []Service{}
+	
+	for _, x := range services {
+		if (fmt.Sprintf("%v", x.ID) == id) || (fmt.Sprintf("%v", x.Service) == id) {
+			s = append(s, x)
 		}
+	}
+
+	if len(s) > 0 {
+		return s
 	}
 
 	return nil
 }
 
-func CheckResponse(result *Result, service Service, passiveOnly bool, requestHeaders map[string]string, timeout int) {
+func CheckResponse(result *Result, service Service, passiveOnly bool, requestHeaders map[string]string, timeout int, verbose bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout) * time.Millisecond)
 	defer cancel()
 
@@ -166,7 +173,11 @@ func CheckResponse(result *Result, service Service, passiveOnly bool, requestHea
 
 	req, err := http.NewRequest("GET", result.URL, nil)
 	if err != nil {
-		fmt.Printf("[-] Error: Failed to request %s\n", result.URL)
+		if verbose {
+			fmt.Printf("[-] Error: Failed to request %s (%v)\n", result.URL, err)
+		} else {
+			fmt.Printf("[-] Error: Failed to request %s\n", result.URL)
+		}
 		result.Vulnerable = false
 	}
 
@@ -180,7 +191,11 @@ func CheckResponse(result *Result, service Service, passiveOnly bool, requestHea
 
 	res, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("[-] Error: Failed to read response for %s\n", result.URL)
+		if verbose {
+			fmt.Printf("[-] Error: Failed to read response for %s (%v)\n", result.URL, err)
+		} else {
+			fmt.Printf("[-] Error: Failed to read response for %s\n", result.URL)
+		}
 		result.Exists = false
 		result.Vulnerable = false
 	}
@@ -189,10 +204,12 @@ func CheckResponse(result *Result, service Service, passiveOnly bool, requestHea
 
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			fmt.Printf("[-] Error: Failed to read response body for %s\n", result.URL)
+			if verbose {
+				fmt.Printf("[-] Error: Failed to read response body for %s (%v)\n", result.URL, err)
+			} else {
+				fmt.Printf("[-] Error: Failed to read response body for %s\n", result.URL)
+			}
 		}
-
-		//fmt.Printf("INFO: Response body: %s (%s)\n", string(body), ParseFingerprints(service.Fingerprints))
 
 		if passiveOnly {
 			pattern := fmt.Sprintf(`%s`, ParseRegex(service.Passive)) // Transform array into regex pattern
@@ -231,7 +248,21 @@ func PrintResult(result Result, passiveOnly bool) {
 	for _, ref := range result.Service.References {
 		fmt.Printf("\t- %s\n", ref)
 	}
+}
 
+func PrintServices(services []Service, verbose bool) {
+	if verbose {
+		fmt.Printf("[+] %v Service(s) loaded!\n", len(services))
+	}
+
+	// Print the table header
+	fmt.Println("| ID | Service                               ")
+	fmt.Println("|----|---------------------------------------")
+
+	// Print each row of the table
+	for _, service := range services {
+		fmt.Printf("| %-2d | %-7s\n", service.ID, service.ServiceName)
+	}
 }
 
 func main() {
@@ -241,8 +272,9 @@ func main() {
 	permutationsFlag := flag.Bool("permutations", true, "Enable permutations and look for several other keywords of your target. Default: \"true\"")
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookie: xyz...;;\"")
 	delayFlag := flag.Int("delay", 0, "Specify a delay between each request sent in milliseconds to enforce a rate limit (default: \"0\").")
-	timeoutFlag := flag.Int("timeout", 7000, "Specify a timeout for each request sent in milliseconds (default: \"7000\").")
+	timeoutFlag := flag.Int("timeout", 7000, "Specify a timeout for each request sent in milliseconds.")
 	servicesFlag := flag.Bool("services", false, "Print all services with their associated IDs")
+	verboseFlag := flag.Bool("verbose", false, "Print verbose (error) messages")
 
 	flag.Parse()
 
@@ -253,20 +285,16 @@ func main() {
 	var requestHeaders map[string]string = ParseRequestHeaders(*requestHeadersFlag)
 	var delay int = *delayFlag
 	var timeout int = *timeoutFlag
+	var verbose bool = *verboseFlag
 
-	services, _ = LoadServices()
+	services, err := LoadServices()
+	if err != nil {
+		fmt.Println("[-] Error: Failed to load services.")
+		os.Exit(0)
+	}
 
 	if *servicesFlag {
-		fmt.Printf("[+] %v Service(s) loaded!\n", len(services))
-
-		// Print the table header
-		fmt.Println("| ID | Service                               ")
-		fmt.Println("|----|---------------------------------------")
-
-		// Print each row of the table
-		for _, service := range services {
-			fmt.Printf("| %-2d | %-7s\n", service.ID, service.ServiceName)
-		}
+		PrintServices(services, verbose)
 		return
 	}
 
@@ -282,14 +310,18 @@ func main() {
 	if service == "*" {
 		selectedServices = services
 	} else {
-		fmt.Printf("Service: \"%v\", %T\n", service, service)
-		s := GetService(service)
-		if s == nil {
-			fmt.Printf("[-] Error: Service ID \"%v\" does not match any integrated service!\n", service)
+		s := GetService(service, services)
+		if s == nil || len(s.([]Service)) < 1 {
+			fmt.Printf("[-] Error: Service ID \"%v\" does not match any integrated service!\n\nAvailable Services:\n", service)
+			PrintServices(services, verbose)
 			return
 		}
+
+		if verbose {
+			fmt.Printf("[+] %v Services selected!\n", len(s.([]Service)))
+		}
 	
-		selectedServices = append(selectedServices, s.(Service))
+		selectedServices = append(selectedServices, s.([]Service)...)
 	}
 
 	var possibleDomains []string
@@ -311,7 +343,11 @@ func main() {
 
 			URL, err := url.Parse(targetURL)
 			if err != nil {
-				fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping... (%v)\n", targetURL, err)
+				if verbose {
+					fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping... (%v)\n", targetURL, err)
+				} else {
+					fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping...\n", targetURL)
+				}
 				continue // Skip invalid URLs and move on to the next one
 			}
 
@@ -323,7 +359,7 @@ func main() {
 
 			time.Sleep(time.Duration(delay) * time.Millisecond)
 
-			CheckResponse(&result, selectedService, passiveOnly, requestHeaders, timeout)
+			CheckResponse(&result, selectedService, passiveOnly, requestHeaders, timeout, verbose)
 
 			if result.Exists || result.Vulnerable {
 				PrintResult(result, passiveOnly)
@@ -332,7 +368,6 @@ func main() {
 			} else {
 				if !result.Exists {
 					fmt.Printf("[-] No %s instance vulnerable found (%s)\n", result.Service.ServiceName, result.URL)
-
 					continue
 				}
 
