@@ -113,6 +113,8 @@ Usage of ./main:
     	Specify your target domain name or company/organization name: "intigriti.com" or "intigriti"
   -timeout int
     	Specify a timeout for each request sent in milliseconds. (default 7000)
+  -verbose
+    	Print verbose messages
 ```
 
 ### Templates:
@@ -126,7 +128,8 @@ To define more services, edit the services.json file and separate each misconfig
 	"id":			0,
 	"baseURL":		"{BASE_URL}",
 	"path":			"{PATH}",
-	"service":		"{SERVICE_NAME}",
+	"service":		"{SERVICE}",
+	"serviceName":		"{SERVICE_NAME}",
 	"description":		"{DESCRIPTION}",
 	"reproductionSteps":	[
 		"{STEP_1}", 
