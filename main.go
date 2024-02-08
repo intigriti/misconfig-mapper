@@ -274,7 +274,7 @@ func main() {
 	delayFlag := flag.Int("delay", 0, "Specify a delay between each request sent in milliseconds to enforce a rate limit (default: \"0\").")
 	timeoutFlag := flag.Int("timeout", 7000, "Specify a timeout for each request sent in milliseconds.")
 	servicesFlag := flag.Bool("services", false, "Print all services with their associated IDs")
-	verboseFlag := flag.Bool("verbose", false, "Print verbose (error) messages")
+	verboseFlag := flag.Bool("verbose", false, "Print verbose messages")
 
 	flag.Parse()
 
