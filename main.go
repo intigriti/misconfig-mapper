@@ -6,6 +6,7 @@ import (
 	"flag"
 	"time"
 	"regexp"
+	"context"
 	"strings"
 	"net/url"
 	"net/http"
@@ -148,23 +149,28 @@ func GetService(id string) interface{} {
 	return nil
 }
 
-func CheckResponse(result *Result, service Service, passiveOnly bool, requestHeaders map[string]string, timeout float64) {
+func CheckResponse(result *Result, service Service, passiveOnly bool, requestHeaders map[string]string, timeout int) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout) * time.Millisecond)
+	defer cancel()
+
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			// Follow max 4 redirects
 			if len(via) >= 4 {
-				return fmt.Errorf("Too many redirects")
+				return fmt.Errorf("[-] Error: Too many redirects encountered for %v\n", result.URL)
 			}
 			return nil
 		},
-		Timeout: time.Duration(timeout) * time.Second,
+		Timeout: time.Duration(timeout) * time.Millisecond,
 	}
 
 	req, err := http.NewRequest("GET", result.URL, nil)
 	if err != nil {
-		fmt.Printf("[-] Error: Failed to request %s (%v)\n", result.URL, err)
+		fmt.Printf("[-] Error: Failed to request %s\n", result.URL)
 		result.Vulnerable = false
 	}
+
+	req.WithContext(ctx)
 
 	for key, value := range requestHeaders {
 		req.Header.Set(key, value)
@@ -174,7 +180,7 @@ func CheckResponse(result *Result, service Service, passiveOnly bool, requestHea
 
 	res, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("[-] Error: Failed to read response for %s (%v)\n", result.URL, err)
+		fmt.Printf("[-] Error: Failed to read response for %s\n", result.URL)
 		result.Exists = false
 		result.Vulnerable = false
 	}
@@ -183,7 +189,7 @@ func CheckResponse(result *Result, service Service, passiveOnly bool, requestHea
 
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			fmt.Printf("[-] Error: Failed to read response body for %s (%v)\n", result.URL, err)
+			fmt.Printf("[-] Error: Failed to read response body for %s\n", result.URL)
 		}
 
 		//fmt.Printf("INFO: Response body: %s (%s)\n", string(body), ParseFingerprints(service.Fingerprints))
@@ -233,8 +239,9 @@ func main() {
 	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services.")
 	passiveOnlyFlag := flag.Bool("passive-only", false, "Only check for existing instances (don't check for misconfigurations). Default: \"false\"")
 	permutationsFlag := flag.Bool("permutations", true, "Enable permutations and look for several other keywords of your target. Default: \"true\"")
-	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookies: xyz...;;\"")
-	timeoutFlag := flag.Float64("timeout", 7.0, "Specify a timeout for each request sent in seconds (default: \"7.0\").")
+	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookie: xyz...;;\"")
+	delayFlag := flag.Int("delay", 0, "Specify a delay between each request sent in milliseconds to enforce a rate limit (default: \"0\").")
+	timeoutFlag := flag.Int("timeout", 7000, "Specify a timeout for each request sent in milliseconds (default: \"7000\").")
 	servicesFlag := flag.Bool("services", false, "Print all services with their associated IDs")
 
 	flag.Parse()
@@ -244,7 +251,8 @@ func main() {
 	var passiveOnly bool = *passiveOnlyFlag
 	var permutations bool = *permutationsFlag
 	var requestHeaders map[string]string = ParseRequestHeaders(*requestHeadersFlag)
-	var timeout float64 = *timeoutFlag
+	var delay int = *delayFlag
+	var timeout int = *timeoutFlag
 
 	services, _ = LoadServices()
 
@@ -312,6 +320,8 @@ func main() {
 			result.Service = selectedService
 			result.Exists = false // Default value
 			result.Vulnerable = false // Default value
+
+			time.Sleep(time.Duration(delay) * time.Millisecond)
 
 			CheckResponse(&result, selectedService, passiveOnly, requestHeaders, timeout)
 
