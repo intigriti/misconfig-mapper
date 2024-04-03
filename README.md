@@ -35,8 +35,7 @@ $ ./misconfig-mapper -help
 ```
 
 
-
-## From source
+### From source
 
 If you want to build your own instance from source, ensure you have the latest version of Golang installed. To verify your installation, run:
 
