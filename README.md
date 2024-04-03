@@ -25,7 +25,7 @@ The tool is based on templates and is versatile. New services can be easily adde
 1. Clone this repository:
 
 ```bash
-$ git clone {GH_REPO}
+$ git clone https://github.com/intigriti/misconfig-mapper.git
 ```
 
 2. Run the pre-compiled binary (see [usage](cli-tool.md#usage) for more information).
