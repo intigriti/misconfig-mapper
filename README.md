@@ -40,7 +40,7 @@ If you want to build your own instance from source, ensure you have the latest v
 
 ```bash
 $ go version
-  go version go1.21.1 linux/amd64
+  go version go1.21.5 linux/amd64
 ```
 
 1. Next, compile your binary from source:
