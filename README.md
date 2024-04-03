@@ -150,13 +150,13 @@ To define more services, edit the services.json file and separate each misconfig
 }
 ```
 
-### ID
+### **ID**
 
 **Type:** number\
 \
 The `id` field is used to identify the service when the `-service` flag is provided. It should be a numerical value that follows the sequence of previous IDs.
 
-**BaseURL**
+### **BaseURL**
 
 **Type:** string
 
@@ -179,16 +179,16 @@ Example: https://{TARGET}.example.com will allow the tool to look for:
 
 The `path` field checks whether the service is vulnerable by observing the response.
 
-{% hint style="info" %}
-The CLI tool can auto-detect and replace the **"{TARGET}"** template variable with the target provided using the target flag.\
+> [!HINT]
+> The CLI tool can auto-detect and replace the **"{TARGET}"** template variable with the target provided using the target flag.\
 \
-Example: /app/{TARGET} will allow the tool to look for:
+> Example: /app/{TARGET} will allow the tool to look for:
+>
+> -   https://example.com/app/yourcompanyname
+> -   https://example.com/app/yourcompanyname-app
+> -   https://example.com/app/yourcompanyname-eu
+> -   ...
 
--   https://example.com/app/yourcompanyname
--   https://example.com/app/yourcompanyname-app
--   https://example.com/app/yourcompanyname-eu
--   ...
-    {% endhint %}
 
 ### **Service**
 
