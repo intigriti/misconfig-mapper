@@ -1,4 +1,4 @@
-# ServiceScanner
+# Misfconfig Mapper
 
 A list of with the most common misconfigurations among popular services used by bug bounty targets and online (software) companies!
 
@@ -6,9 +6,7 @@ Curated by @INTIGRITI for the community!
 
 ![image](./images/logo.png)
 
-# Misfconfig Mapper
-
-# CLI Tool
+## CLI Tool
 
 _**Common Misconfigurations**_ has a [dedicated open-source CLI tool ](https://github.com/intigriti/service-scanner) written in Golang to help you automate the testing of most misconfigurations found on covered services.\
 \
