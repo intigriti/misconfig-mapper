@@ -14,7 +14,7 @@ It can enumerate dedicated instances of services that your company may use and p
 \
 The tool is based on templates and is versatile. New services can be easily added by adding them to the `services.json` file.
 
-## Features
+# Features
 
 -   The CLI tool is based on templates defined in the `services.json` file. You can add as many as you want. See [_Templates section_](cli-tool.md#templates) for more information on how to add a template.
 -   If you provide a company name, the tool will automatically generate permutations based on the keyword you provided and try to find any matching services.
