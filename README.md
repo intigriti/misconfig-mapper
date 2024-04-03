@@ -68,10 +68,14 @@ $ ./main -target "yourcompanyname" -service "*" -passive-only
 
 <figure><img src=".gitbook/assets/image%20(1).png" alt=""><figcaption></figcaption></figure>
 
-**Example 3:** Only test for one specific service
+**Example 3:** Only test for one specific service (by ID or name)
 
 ```bash
 $ ./main -target "yourcompanyname" -service "1"
+```
+
+```bash
+$ ./main -target "yourcompanyname" -service "drupal"
 ```
 
 <figure><img src=".gitbook/assets/image%20(4).png" alt=""><figcaption></figcaption></figure>
@@ -84,7 +88,7 @@ $ ./main -services
 
 <figure><img src=".gitbook/assets/image%20(3).png" alt=""><figcaption></figcaption></figure>
 
-You can additionally also pass request headers using the `-headers` flag to comply with any request requirements (separate each header using a **double semi-colon**):
+Additionally, you can pass request headers using the `-headers` flag to comply with any request requirements (separate each header using a **double semi-colon**):
 
 ```
 -headers "User-Agent: xyz;; Cookie: session=eyJ...;;"
