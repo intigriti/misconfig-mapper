@@ -6,15 +6,9 @@ Curated by @INTIGRITI for the community!
 
 ![image](./images/logo.png)
 
-# Project Name (een aantal suggesties):
-
--   Service Scanner / ServiceScan
--   Service Attacker / ServiceAttack
--   Active Service
+# Misfconfig Mapper
 
 # CLI Tool
-
-# CLI TOOL
 
 _**Common Misconfigurations**_ has a [dedicated open-source CLI tool ](https://github.com/intigriti/service-scanner) written in Golang to help you automate the testing of most misconfigurations found on covered services.\
 \
