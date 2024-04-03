@@ -45,8 +45,9 @@ $ go version
 
 1. Next, compile your binary from source:
 
-<pre class="language-bash"><code class="lang-bash"><strong>$ go build -o misconfig-mapper
-</strong></code></pre>
+```bash
+$ go build -o misconfig-mapper
+```
 
 2. Finally, add or move the binary to a folder in your `$PATH` (optional)
 
