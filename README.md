@@ -87,13 +87,13 @@ $ ./main -services
 You can additionally also pass request headers using the `-headers` flag to comply with any request requirements (separate each header using a **double semi-colon**):
 
 ```
--headers "User-Agent: xyz;; Cookies: session=eyJ...;;"
+-headers "User-Agent: xyz;; Cookie: session=eyJ...;;"
 ```
 
 ```
 Usage of ./main:
   -headers string
-    	Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookies: xyz...;;"
+    	Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookie: xyz...;;"
   -passive-only
     	Only check for existing instances (don't check for misconfigurations). Default: "false"
   -permutations
