@@ -31,7 +31,7 @@ $ git clone {GH_REPO}
 2. Run the pre-compiled binary (see [usage](cli-tool.md#usage) for more information).
 
 ```bash
-$ ./main -help
+$ ./misconfig-mapper -help
 ```
 
 #### From source
@@ -45,7 +45,7 @@ $ go version
 
 1. Next, compile your binary from source:
 
-<pre class="language-bash"><code class="lang-bash"><strong>$ go build main.go -o main
+<pre class="language-bash"><code class="lang-bash"><strong>$ go build -o misconfig-mapper
 </strong></code></pre>
 
 2. Finally, add or move the binary to a folder in your `$PATH` (optional)
@@ -55,7 +55,7 @@ $ go version
 **Example 1:** Perform active tests to enumerate all misconfigured third-party services
 
 ```basic
-$ ./main -target "yourcompanyname" -service "*"
+$ ./misconfig-mapper -target "yourcompanyname" -service "*"
 ```
 
 <figure><img src=".gitbook/assets/image%20(2).png" alt=""><figcaption></figcaption></figure>
@@ -63,7 +63,7 @@ $ ./main -target "yourcompanyname" -service "*"
 **Example 2:** Only perform passive tests to enumerate all third-party services
 
 ```bash
-$ ./main -target "yourcompanyname" -service "*" -passive-only
+$ ./misconfig-mapper -target "yourcompanyname" -service "*" -passive-only
 ```
 
 <figure><img src=".gitbook/assets/image%20(1).png" alt=""><figcaption></figcaption></figure>
@@ -71,11 +71,11 @@ $ ./main -target "yourcompanyname" -service "*" -passive-only
 **Example 3:** Only test for one specific service (by ID or name)
 
 ```bash
-$ ./main -target "yourcompanyname" -service "1"
+$ ./misconfig-mapper -target "yourcompanyname" -service "1"
 ```
 
 ```bash
-$ ./main -target "yourcompanyname" -service "drupal"
+$ ./misconfig-mapper -target "yourcompanyname" -service "drupal"
 ```
 
 <figure><img src=".gitbook/assets/image%20(4).png" alt=""><figcaption></figcaption></figure>
@@ -83,7 +83,7 @@ $ ./main -target "yourcompanyname" -service "drupal"
 **Example 4:** Print out all loaded services
 
 ```bash
-$ ./main -services
+$ ./misconfig-mapper -services
 ```
 
 <figure><img src=".gitbook/assets/image%20(3).png" alt=""><figcaption></figcaption></figure>
@@ -95,7 +95,7 @@ Additionally, you can pass request headers using the `-headers` flag to comply w
 ```
 
 ```
-Usage of ./main:
+Usage of ./misconfig-mapper:
   -headers string
     	Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookie: xyz...;;"
   -passive-only
