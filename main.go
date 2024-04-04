@@ -246,18 +246,18 @@ func PrintResult(result Result, passiveOnly bool) {
 	fmt.Printf("Service: %s\n", result.Service.ServiceName)
 	fmt.Printf("Description: %s\n", result.Service.Description)
 
-	fmt.Println("\nReproduction Steps:")
-	for _, step := range result.Service.ReproductionSteps {
-		fmt.Printf("\t- %s\n", step)
+	if len(result.Service.ReproductionSteps) > 0 {
+		fmt.Println("\nReproduction Steps:")
+		for _, step := range result.Service.ReproductionSteps {
+			fmt.Printf("\t- %s\n", step)
+		}
 	}
 
-	fmt.Println("\nReferences:")
 	if len(result.Service.References) > 0 {
+		fmt.Println("\nReferences:")
 		for _, ref := range result.Service.References {
 			fmt.Printf("\t- %s\n", ref)
 		}
-	} else {
-		fmt.Println("No references available")
 	}
 
 	fmt.Println(strings.Repeat("-", width))
