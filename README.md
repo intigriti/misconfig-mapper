@@ -133,6 +133,11 @@ To define more services, edit the services.json file and separate each misconfig
 		"method":			"{METHOD}",
 		"baseURL":			"{BASE_URL}",
 		"path":				"{PATH}",
+		"headers":		[
+			{
+				"{HEADER}": "{VALUE}"
+			}
+		],
 		"body":				null
 	},
 	"response": {
@@ -212,6 +217,12 @@ The `path` field checks whether the service is vulnerable by observing the respo
 > -   https://example.com/app/yourcompanyname-app
 > -   https://example.com/app/yourcompanyname-eu
 > -   ...
+
+### **Headers**
+
+**Type:** object array
+
+The `headers` field is used to supply any required request headers.
 
 ### **Body**
 

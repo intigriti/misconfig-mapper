@@ -22,24 +22,25 @@ import (
 /* /TYPES */
 
 type Service struct {
-	ID					int64		`json:"id"`
-	Service				string		`json:"service"`
+	ID					int64					`json:"id"`
 	Request				struct		{
-		Method				string		`json:"method"`
-		BaseURL				string		`json:"baseURL"`
-		Path				string		`json:"path"`
-		Body				any			`json:"body"`
+		Method				string				`json:"method"`
+		BaseURL				string				`json:"baseURL"`
+		Path				[]string			`json:"path"`
+		Headers				[]map[string]string	`json:"headers"`
+		Body				any					`json:"body"`
 	}	`json:"request"`
 	Response			struct		{
-		StatusCode			int64		`json:"statusCode"`
-		Passive				[]string	`json:"passive"`
-		Active				[]string	`json:"active"`
+		StatusCode			int64				`json:"statusCode"`
+		Passive				[]string			`json:"passive"`
+		Active				[]string			`json:"active"`
 	}	`json:"response"`
 	Metadata			struct		{
-		ServiceName			string 		`json:"serviceName"`
-		Description			string	 	`json:"description"`
-		ReproductionSteps	[]string	`json:"reproductionSteps"`
-		References			[]string	`json:"references"`
+		Service				string				`json:"service"`
+		ServiceName			string 				`json:"serviceName"`
+		Description			string	 			`json:"description"`
+		ReproductionSteps	[]string			`json:"reproductionSteps"`
+		References			[]string			`json:"references"`
 	}	`json:"metadata"`
 }
 
@@ -165,7 +166,7 @@ func GetService(id string, services []Service) interface{} {
 	s := []Service{}
 
 	for _, x := range services {
-		if (fmt.Sprintf("%v", x.ID) == id) || (fmt.Sprintf("%v", x.Service) == id) {
+		if (fmt.Sprintf("%v", x.ID) == id) || (fmt.Sprintf("%v", x.Metadata.Service) == id) {
 			s = append(s, x)
 		}
 	}
@@ -211,6 +212,14 @@ func CheckResponse(result *Result, service Service, passiveOnly bool, requestHea
 
 	for key, value := range requestHeaders {
 		req.Header.Set(key, value)
+	}
+
+	if len(service.Request.Headers) > 0 {
+		for _, header := range service.Request.Headers {
+			for key, value := range header {
+				req.Header.Set(key, value)
+			}
+		}
 	}
 
 	req.Header.Set("Connection", "close")
@@ -408,53 +417,55 @@ func main() {
 
 	for _, selectedService := range selectedServices {
 		for _, domain := range possibleDomains {
-			var result Result
-			var targetURL string
+			for _, path := range selectedService.Request.Path {
+				var result Result
+				var targetURL string
 
-			limiter.Wait(context.Background())
-			
-			if permutations {
-				targetURL = strings.Replace(fmt.Sprintf("%v%v", selectedService.Request.BaseURL, selectedService.Request.Path), "{TARGET}", fmt.Sprintf("%s", domain), -1)
-			} else {
-				targetURL = fmt.Sprintf("%v%v", domain, selectedService.Request.Path)
-			}
-
-			URL, err := url.Parse(targetURL)
-			if err != nil {
-				if verbose {
-					fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping... (%v)\n", targetURL, err)
+				limiter.Wait(context.Background())
+				
+				if permutations {
+					targetURL = strings.Replace(fmt.Sprintf("%v%v", selectedService.Request.BaseURL, path), "{TARGET}", fmt.Sprintf("%s", domain), -1)
 				} else {
-					fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping...\n", targetURL)
-				}
-				continue // Skip invalid URLs and move on to the next one
-			}
-
-			if !permutations {
-				if URL.Scheme == "" {
-					URL.Scheme = "https"
-				}
-			}
-
-			result.URL = URL.String()
-			result.ServiceId = service
-			result.Service = selectedService
-			result.Exists = false // Default value
-			result.Vulnerable = false // Default value
-
-			CheckResponse(&result, selectedService, passiveOnly, requestHeaders, timeout, maxRedirects, verbose)
-
-			if result.Exists || result.Vulnerable {
-				PrintResult(result, passiveOnly, width)
-
-				break
-			} else {
-				if !result.Exists {
-					fmt.Printf("[-] No %s instance vulnerable found (%s)\n", result.Service.Metadata.ServiceName, result.URL)
-					continue
+					targetURL = fmt.Sprintf("%v%v", domain, path)
 				}
 
-				if (!result.Exists && !result.Vulnerable) {
-					fmt.Printf("[-] %s instance is not vulnerable (%s)\n", result.Service.Metadata.ServiceName, result.URL)
+				URL, err := url.Parse(targetURL)
+				if err != nil {
+					if verbose {
+						fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping... (%v)\n", targetURL, err)
+					} else {
+						fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping...\n", targetURL)
+					}
+					continue // Skip invalid URLs and move on to the next one
+				}
+
+				if !permutations {
+					if URL.Scheme == "" {
+						URL.Scheme = "https"
+					}
+				}
+
+				result.URL = URL.String()
+				result.ServiceId = service
+				result.Service = selectedService
+				result.Exists = false // Default value
+				result.Vulnerable = false // Default value
+
+				CheckResponse(&result, selectedService, passiveOnly, requestHeaders, timeout, maxRedirects, verbose)
+
+				if result.Exists || result.Vulnerable {
+					PrintResult(result, passiveOnly, width)
+
+					break
+				} else {
+					if !result.Exists {
+						fmt.Printf("[-] No %s instance vulnerable found (%s)\n", result.Service.Metadata.ServiceName, result.URL)
+						continue
+					}
+
+					if (!result.Exists && !result.Vulnerable) {
+						fmt.Printf("[-] %s instance is not vulnerable (%s)\n", result.Service.Metadata.ServiceName, result.URL)
+					}
 				}
 			}
 		}
