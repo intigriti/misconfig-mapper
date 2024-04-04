@@ -14,6 +14,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"golang.org/x/time/rate"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 /* /TYPES */
@@ -230,6 +231,11 @@ func CheckResponse(result *Result, service Service, passiveOnly bool, requestHea
 }
 
 func PrintResult(result Result, passiveOnly bool) {
+	fd := int(os.Stdout.Fd())
+	width, _, _ := terminal.GetSize(fd)
+
+	fmt.Println(strings.Repeat("-", width))
+
 	if passiveOnly {
 		fmt.Printf("[+] 1 %s Instance found!\n", result.Service.ServiceName)
 	} else {
@@ -246,9 +252,15 @@ func PrintResult(result Result, passiveOnly bool) {
 	}
 
 	fmt.Println("\nReferences:")
-	for _, ref := range result.Service.References {
-		fmt.Printf("\t- %s\n", ref)
+	if len(result.Service.References) > 0 {
+		for _, ref := range result.Service.References {
+			fmt.Printf("\t- %s\n", ref)
+		}
+	} else {
+		fmt.Println("No references available")
 	}
+
+	fmt.Println(strings.Repeat("-", width))
 }
 
 func PrintServices(services []Service, verbose bool) {
@@ -282,7 +294,6 @@ func main() {
 
 	var target string = *targetFlag
 	var service string = *serviceFlag
-	var permutations string = *permutationsFlag
 	var requestHeaders map[string]string = ParseRequestHeaders(*requestHeadersFlag)
 	var delay int = *delayFlag
 	var timeout int = *timeoutFlag
@@ -333,10 +344,10 @@ func main() {
 	var passiveOnly bool = false
 
 	switch strings.ToLower(*passiveOnlyFlag) {
-		case "", "y", "yes", "true", "1":
+		case "", "y", "yes", "true", "on", "1":
 			passiveOnly = true
 			break
-		case "n", "no", "false", "0":
+		case "n", "no", "false", "off", "0":
 			passiveOnly = false
 			break
 		default:
@@ -346,20 +357,26 @@ func main() {
 
 	// Parse "permutations" CLI flag
 	var possibleDomains []string
+	var permutations bool
 
-	switch strings.ToLower(permutations) {
-		case "", "y", "yes", "true", "1":
-			// Perform permutations on target and scan all of them
-			possibleDomains = ReturnPossibleDomains(target)
+	switch strings.ToLower(*permutationsFlag) {
+		case "", "y", "yes", "true", "on", "1":
+			permutations = true
 			break
-		case "n", "no", "false", "0":
-			// Only perfom scan on the supplied target flag value
-			possibleDomains = append(possibleDomains, target)
+		case "n", "no", "false", "off", "0":
+			permutations = false
 			break
 		default:
-			// Only perfom scan on the supplied target flag value
-			possibleDomains = append(possibleDomains, target)
+			permutations = false
 			break
+    }
+
+    if permutations {
+    	// Perform permutations on target and scan all of them
+		possibleDomains = ReturnPossibleDomains(target)
+    } else {
+    	// Only perfom scan on the supplied target flag value
+		possibleDomains = append(possibleDomains, target)
     }
 
 	fmt.Printf("[+] Checking %v possible target URLs...\n", len(possibleDomains))
@@ -369,7 +386,12 @@ func main() {
 			limiter.Wait(context.Background())
 
 			var result Result
-			targetURL := strings.Replace(fmt.Sprintf("%v%v", selectedService.BaseURL, selectedService.Path), "{TARGET}", fmt.Sprintf("%s", domain), -1)
+			var targetURL string
+			if permutations {
+				targetURL = strings.Replace(fmt.Sprintf("%v%v", selectedService.BaseURL, selectedService.Path), "{TARGET}", fmt.Sprintf("%s", domain), -1)
+			} else {
+				targetURL = fmt.Sprintf("%v%v", domain, selectedService.Path)
+			}
 
 			URL, err := url.Parse(targetURL)
 			if err != nil {
@@ -379,6 +401,12 @@ func main() {
 					fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping...\n", targetURL)
 				}
 				continue // Skip invalid URLs and move on to the next one
+			}
+
+			if !permutations {
+				if URL.Scheme == "" {
+					URL.Scheme = "https"
+				}
 			}
 
 			result.URL = URL.String()
