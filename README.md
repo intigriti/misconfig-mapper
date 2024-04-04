@@ -60,7 +60,7 @@ $ go build -o misconfig-mapper
 $ ./misconfig-mapper -target "yourcompanyname" -service "*"
 ```
 
-![Example 1](images/image_1.png "Example 1")
+![Example 1](images/example_1.png "Example 1")
 
 **Example 2:** Only perform passive tests to enumerate all third-party services
 
@@ -68,7 +68,7 @@ $ ./misconfig-mapper -target "yourcompanyname" -service "*"
 $ ./misconfig-mapper -target "yourcompanyname" -service "*" -passive-only
 ```
 
-<figure><img src=".gitbook/assets/image%20(1).png" alt=""><figcaption></figcaption></figure>
+![Example 2](images/example_2.png "Example 2")
 
 **Example 3:** Only test for one specific service (by ID or name)
 
@@ -80,7 +80,7 @@ $ ./misconfig-mapper -target "yourcompanyname" -service "1"
 $ ./misconfig-mapper -target "yourcompanyname" -service "drupal"
 ```
 
-<figure><img src=".gitbook/assets/image%20(4).png" alt=""><figcaption></figcaption></figure>
+![Example 3](images/example_3.png "Example 3")
 
 **Example 4:** Print out all loaded services
 
@@ -88,7 +88,7 @@ $ ./misconfig-mapper -target "yourcompanyname" -service "drupal"
 $ ./misconfig-mapper -services
 ```
 
-<figure><img src=".gitbook/assets/image%20(3).png" alt=""><figcaption></figcaption></figure>
+![Example 4](images/example_4.png "Example 4")
 
 Additionally, you can pass request headers using the `-headers` flag to comply with any request requirements (separate each header using a **double semi-colon**):
 
