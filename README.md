@@ -162,16 +162,15 @@ The `id` field is used to identify the service when the `-service` flag is provi
 
 The `baseURL` field is used to locate the third-party service, if it exists.
 
-{% hint style="info" %}
-The CLI tool can auto-detect and replace the **"{TARGET}"** template variable with the target provided using the target flag.\
-\
-Example: https://{TARGET}.example.com will allow the tool to look for:
-
--   https://yourcompanyname.example.com
--   https://yourcompanyname-app.example.com
--   https://yourcompanyname-eu.example.com
--   ...
-    {% endhint %}
+> [!TIP]
+> The CLI tool can auto-detect and replace the **"{TARGET}"** template variable with the target provided using the target flag.\
+> \
+> Example: https://{TARGET}.example.com will allow the tool to look for:
+>
+> -   https://yourcompanyname.example.com
+> -   https://yourcompanyname-app.example.com
+> -   https://yourcompanyname-eu.example.com
+> -   ...
 
 ### **Path**
 
@@ -179,7 +178,7 @@ Example: https://{TARGET}.example.com will allow the tool to look for:
 
 The `path` field checks whether the service is vulnerable by observing the response.
 
-> [!NOTE]
+> [!TIP]
 > The CLI tool can auto-detect and replace the **"{TARGET}"** template variable with the target provided using the target flag.\
 \
 > Example: /app/{TARGET} will allow the tool to look for:
@@ -208,9 +207,8 @@ The `description` field displays the service description in the CLI output once 
 
 The `reproductionSteps` field reports back on how to reproduce the found misconfiguration. These steps are derived from this documentation.
 
-{% hint style="info" %}
-Each step should be in a separate array entry. You can specify as many steps as you'd like to.
-{% endhint %}
+> [!NOTE]
+> Each step should be in a separate array entry. You can specify as many steps as you'd like to.
 
 ### **Passive**
 
@@ -230,9 +228,8 @@ The `active` field is used to validate the existence of a misconfigured third-pa
 
 The' references' field documents enumerated and misconfigured services. These references are derived from this documentation.
 
-{% hint style="info" %}
-Each reference should be in a separate array entry. You can specify as many references as you'd like to.
-{% endhint %}
+> [!NOTE]
+> Each reference should be in a separate array entry. You can specify as many references as you'd like to.
 
 # Contributions
 
