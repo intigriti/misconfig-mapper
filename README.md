@@ -85,7 +85,7 @@ $ ./misconfig-mapper -target "yourcompanyname" -service "drupal"
 **Example 4:** Print out all loaded services
 
 ```bash
-$ ./misconfig-mapper -services
+$ ./misconfig-mapper -list-services
 ```
 
 ![Example 4](images/example_4.png "Example 4")
@@ -102,6 +102,8 @@ Usage of ./misconfig-mapper:
     	Specify a delay between each request sent in milliseconds to enforce a rate limit.
   -headers string
     	Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookie: xyz...;;"
+  -list-services
+    	Print all services with their associated IDs
   -max-redirects int
     	Specify the max amount of redirects to follow. (default 3)
   -passive-only string
@@ -110,8 +112,6 @@ Usage of ./misconfig-mapper:
     	Enable permutations and look for several other keywords of your target. (default "true")
   -service string
     	Specify the service ID you'd like to check for: "0" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services. (default "0")
-  -services
-    	Print all services with their associated IDs
   -target string
     	Specify your target domain name or company/organization name: "intigriti.com" or "intigriti"
   -timeout int
