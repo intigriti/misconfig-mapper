@@ -131,7 +131,7 @@ To define more services, edit the services.json file and separate each misconfig
 	"id":			0,
 	"request": {
 		"method":			"{METHOD}",
-		"baseURL":		"{BASE_URL}",
+		"baseURL":			"{BASE_URL}",
 		"path":				"{PATH}",
 		"body":				null
 	},
@@ -140,12 +140,12 @@ To define more services, edit the services.json file and separate each misconfig
 		"passive":		[
 			"{KEYWORD_1}",
 			"{KEYWORD_2}",
-			...
+			"..."
 		],
 		"active":		[
 			"{KEYWORD_1}",
 			"{KEYWORD_2}",
-			...
+			"..."
 		],
 	},
 	"metadata": {
@@ -154,12 +154,12 @@ To define more services, edit the services.json file and separate each misconfig
 		"reproductionSteps":	[
 			"{STEP_1}",
 			"{STEP_2}",
-			...
+			"..."
 		],
 		"references":		[
 			"{REFERENCE_1}",
 			"{REFERENCE_2}",
-			...
+			"..."
 		]
 	}
 }
