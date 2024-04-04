@@ -1,10 +1,12 @@
 package main
 
 import (
+	"io"
 	"os"
 	"fmt"
 	"flag"
 	"time"
+	"bytes"
 	"regexp"
 	"context"
 	"strings"
@@ -21,15 +23,24 @@ import (
 
 type Service struct {
 	ID					int64		`json:"id"`
-	BaseURL				string		`json:"baseURL"`
-	Path				string		`json:"path"`
 	Service				string		`json:"service"`
-	ServiceName			string 		`json:"serviceName"`
-	Description			string	 	`json:"description"`
-	ReproductionSteps	[]string	`json:"reproductionSteps"`
-	Passive				[]string	`json:"passive"`
-	Active				[]string	`json:"active"`
-	References			[]string	`json:"references"`
+	Request				struct		{
+		Method				string		`json:"method"`
+		BaseURL				string		`json:"baseURL"`
+		Path				string		`json:"path"`
+		Body				any			`json:"body"`
+	}	`json:"request"`
+	Response			struct		{
+		StatusCode			int64		`json:"statusCode"`
+		Passive				[]string	`json:"passive"`
+		Active				[]string	`json:"active"`
+	}	`json:"response"`
+	Metadata			struct		{
+		ServiceName			string 		`json:"serviceName"`
+		Description			string	 	`json:"description"`
+		ReproductionSteps	[]string	`json:"reproductionSteps"`
+		References			[]string	`json:"references"`
+	}	`json:"metadata"`
 }
 
 type Result struct {
@@ -45,15 +56,23 @@ type Result struct {
 /*
 	[
 		{
-			"id":					int64,
-			"baseURL":				string,
-			"path":					string,
-			"service":				string,
-			"description":			string,
-			"reproductionSteps":	[]string,
-			"passive":				[]string,
-			"active":				[]string,
-			"references":			[]string
+			"id":						int64,
+			"request": {
+				"method":				string,
+				"baseURL":				string,
+				"path":					string
+			},
+			"response": {
+				"statusCode":			int64,
+				"passive":				[]string,
+				"active":				[]string
+			},
+			"metadata": {
+				"service":				string,
+				"description":			string,
+				"reproductionSteps":	[]string,
+				"references":			[]string
+			}
 		}
 	]
 */
@@ -76,9 +95,9 @@ var suffixes []string = []string{
 func LoadServices() ([]Service, error) {
 	var services []Service
 
-	file, err := os.Open("./services.json")
+	file, err := os.Open("./templates/services.json")
 	if err != nil {
-		fmt.Println("ERROR: Failed opening file \"./services.json\":", err)
+		fmt.Println("ERROR: Failed opening file \"./templates/services.json\":", err)
 		return services, err
 	}
 	defer file.Close()
@@ -144,7 +163,7 @@ func ReturnPossibleDomains(target string) []string {
 
 func GetService(id string, services []Service) interface{} {
 	s := []Service{}
-	
+
 	for _, x := range services {
 		if (fmt.Sprintf("%v", x.ID) == id) || (fmt.Sprintf("%v", x.Service) == id) {
 			s = append(s, x)
@@ -173,7 +192,12 @@ func CheckResponse(result *Result, service Service, passiveOnly bool, requestHea
 		Timeout: time.Duration(timeout) * time.Millisecond,
 	}
 
-	req, err := http.NewRequest("GET", result.URL, nil)
+	var requestBody io.Reader = nil
+	if service.Request.Body != nil {
+		requestBody = bytes.NewBuffer([]byte(fmt.Sprintf(`%v`, service.Request.Body)))
+	}
+
+	req, err := http.NewRequest(fmt.Sprintf(`%v`, service.Request.Method), result.URL, requestBody)
 	if err != nil {
 		if verbose {
 			fmt.Printf("[-] Error: Failed to request %s (%v)\n", result.URL, err)
@@ -213,49 +237,48 @@ func CheckResponse(result *Result, service Service, passiveOnly bool, requestHea
 			}
 		}
 
-		if passiveOnly {
-			pattern := fmt.Sprintf(`%s`, ParseRegex(service.Passive)) // Transform array into regex pattern
-			re := regexp.MustCompile(pattern)
+		var statusCodeMatched bool = false
+		if res.StatusCode == int(service.Response.StatusCode) {
+			statusCodeMatched = true
+		}
 
-			result.Exists = !!re.MatchString(fmt.Sprintf("%s", string(body)))
+		if passiveOnly {
+			pattern := fmt.Sprintf(`%s`, ParseRegex(service.Response.Passive)) // Transform array into regex pattern
+			result.Exists = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf("%s", string(body))) && statusCodeMatched
+
 			return
 		}
 
-		pattern := fmt.Sprintf(`%s`, ParseRegex(service.Active)) // Transform array into regex pattern
-		re := regexp.MustCompile(pattern)
-
-		result.Vulnerable = !!re.MatchString(fmt.Sprintf("%s", string(body)))
+		pattern := fmt.Sprintf(`%s`, ParseRegex(service.Response.Active)) // Transform array into regex pattern
+		result.Vulnerable = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf("%s", string(body))) && statusCodeMatched
 	}
 
 	return
 }
 
-func PrintResult(result Result, passiveOnly bool) {
-	fd := int(os.Stdout.Fd())
-	width, _, _ := terminal.GetSize(fd)
-
+func PrintResult(result Result, passiveOnly bool, width int) {
 	fmt.Println(strings.Repeat("-", width))
 
 	if passiveOnly {
-		fmt.Printf("[+] 1 %s Instance found!\n", result.Service.ServiceName)
+		fmt.Printf("[+] 1 %s Instance found!\n", result.Service.Metadata.ServiceName)
 	} else {
 		fmt.Println("[+] 1 Vulnerable result found!")
 	}
 
 	fmt.Printf("URL: %s\n", result.URL)
-	fmt.Printf("Service: %s\n", result.Service.ServiceName)
-	fmt.Printf("Description: %s\n", result.Service.Description)
+	fmt.Printf("Service: %s\n", result.Service.Metadata.ServiceName)
+	fmt.Printf("Description: %s\n", result.Service.Metadata.Description)
 
-	if len(result.Service.ReproductionSteps) > 0 {
+	if len(result.Service.Metadata.ReproductionSteps) > 0 {
 		fmt.Println("\nReproduction Steps:")
-		for _, step := range result.Service.ReproductionSteps {
+		for _, step := range result.Service.Metadata.ReproductionSteps {
 			fmt.Printf("\t- %s\n", step)
 		}
 	}
 
-	if len(result.Service.References) > 0 {
+	if len(result.Service.Metadata.References) > 0 {
 		fmt.Println("\nReferences:")
-		for _, ref := range result.Service.References {
+		for _, ref := range result.Service.Metadata.References {
 			fmt.Printf("\t- %s\n", ref)
 		}
 	}
@@ -263,18 +286,18 @@ func PrintResult(result Result, passiveOnly bool) {
 	fmt.Println(strings.Repeat("-", width))
 }
 
-func PrintServices(services []Service, verbose bool) {
+func PrintServices(services []Service, verbose bool, width int) {
 	if verbose {
 		fmt.Printf("[+] %v Service(s) loaded!\n", len(services))
 	}
 
 	// Print the table header
 	fmt.Println("| ID | Service                               ")
-	fmt.Println("|----|---------------------------------------")
+	fmt.Printf(`|----|%v`, strings.Repeat("-", width - 6))
 
 	// Print each row of the table
 	for _, service := range services {
-		fmt.Printf("| %-2d | %-7s\n", service.ID, service.ServiceName)
+		fmt.Printf("| %-2d | %-7s\n", service.ID, service.Metadata.ServiceName)
 	}
 }
 
@@ -300,7 +323,9 @@ func main() {
 	var maxRedirects int = *maxRedirectsFlag
 	var verbose bool = *verboseFlag
 
-	flag.Parse()
+	// Derrive terminal width
+	fd := int(os.Stdout.Fd())
+	width, _, _ := terminal.GetSize(fd)
 
 	services, err := LoadServices()
 	if err != nil {
@@ -309,7 +334,7 @@ func main() {
 	}
 
 	if *listServicesFlag {
-		PrintServices(services, verbose)
+		PrintServices(services, verbose, width)
 		return
 	}
 
@@ -329,7 +354,7 @@ func main() {
 		s := GetService(service, services)
 		if s == nil || len(s.([]Service)) < 1 {
 			fmt.Printf("[-] Error: Service ID \"%v\" does not match any integrated service!\n\nAvailable Services:\n", service)
-			PrintServices(services, verbose)
+			PrintServices(services, verbose, width)
 			return
 		}
 
@@ -383,14 +408,15 @@ func main() {
 
 	for _, selectedService := range selectedServices {
 		for _, domain := range possibleDomains {
-			limiter.Wait(context.Background())
-
 			var result Result
 			var targetURL string
+
+			limiter.Wait(context.Background())
+			
 			if permutations {
-				targetURL = strings.Replace(fmt.Sprintf("%v%v", selectedService.BaseURL, selectedService.Path), "{TARGET}", fmt.Sprintf("%s", domain), -1)
+				targetURL = strings.Replace(fmt.Sprintf("%v%v", selectedService.Request.BaseURL, selectedService.Request.Path), "{TARGET}", fmt.Sprintf("%s", domain), -1)
 			} else {
-				targetURL = fmt.Sprintf("%v%v", domain, selectedService.Path)
+				targetURL = fmt.Sprintf("%v%v", domain, selectedService.Request.Path)
 			}
 
 			URL, err := url.Parse(targetURL)
@@ -418,17 +444,17 @@ func main() {
 			CheckResponse(&result, selectedService, passiveOnly, requestHeaders, timeout, maxRedirects, verbose)
 
 			if result.Exists || result.Vulnerable {
-				PrintResult(result, passiveOnly)
+				PrintResult(result, passiveOnly, width)
 
 				break
 			} else {
 				if !result.Exists {
-					fmt.Printf("[-] No %s instance vulnerable found (%s)\n", result.Service.ServiceName, result.URL)
+					fmt.Printf("[-] No %s instance vulnerable found (%s)\n", result.Service.Metadata.ServiceName, result.URL)
 					continue
 				}
 
 				if (!result.Exists && !result.Vulnerable) {
-					fmt.Printf("[-] %s instance is not vulnerable (%s)\n", result.Service.ServiceName, result.URL)
+					fmt.Printf("[-] %s instance is not vulnerable (%s)\n", result.Service.Metadata.ServiceName, result.URL)
 				}
 			}
 		}

@@ -129,30 +129,39 @@ To define more services, edit the services.json file and separate each misconfig
 ```json
 {
 	"id":			0,
-	"baseURL":		"{BASE_URL}",
-	"path":			"{PATH}",
-	"service":		"{SERVICE_NAME}",
-	"description":		"{DESCRIPTION}",
-	"reproductionSteps":	[
-		"{STEP_1}",
-		"{STEP_2}",
-		...
-	],
-	"passive":		[
-		"{KEYWORD_1}",
-		"{KEYWORD_2}",
-		...
-	],
-	"active":		[
-		"{KEYWORD_1}",
-		"{KEYWORD_2}",
-		...
-	],
-	"references":		[
-		"{REFERENCE_1}",
-		"{REFERENCE_2}",
-		...
-	]
+	"request": {
+		"method":			"{METHOD}",
+		"baseURL":		"{BASE_URL}",
+		"path":				"{PATH}",
+		"body":				null
+	},
+	"response": {
+		"statusCode": 200,
+		"passive":		[
+			"{KEYWORD_1}",
+			"{KEYWORD_2}",
+			...
+		],
+		"active":		[
+			"{KEYWORD_1}",
+			"{KEYWORD_2}",
+			...
+		],
+	},
+	"metadata": {
+		"service":		"{SERVICE_NAME}",
+		"description":		"{DESCRIPTION}",
+		"reproductionSteps":	[
+			"{STEP_1}",
+			"{STEP_2}",
+			...
+		],
+		"references":		[
+			"{REFERENCE_1}",
+			"{REFERENCE_2}",
+			...
+		]
+	}
 }
 ```
 
@@ -161,6 +170,12 @@ To define more services, edit the services.json file and separate each misconfig
 **Type:** number\
 \
 The `id` field is used to identify the service when the `-service` flag is provided. It should be a numerical value that follows the sequence of previous IDs.
+
+### **Method**
+
+**Type:** string
+
+The `method` field is used to provide a HTTP method.
 
 ### **BaseURL**
 
