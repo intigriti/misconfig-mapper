@@ -102,6 +102,8 @@ Usage of ./misconfig-mapper:
     	Specify a delay between each request sent in milliseconds to enforce a rate limit.
   -headers string
     	Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookie: xyz...;;"
+  -max-redirects int
+    	Specify the max amount of redirects to follow. (default 3)
   -passive-only string
     	Only check for existing instances (don't check for misconfigurations).
   -permutations string
