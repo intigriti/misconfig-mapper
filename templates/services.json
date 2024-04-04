@@ -356,7 +356,15 @@
 			"baseURL": "https://{TARGET}",
 			"path": [
 				"/graphql",
-				"/graphql/v1"
+				"/graphql/v1",
+				"/graph",
+				"/graphiql",
+				"/api/graphql",
+				"/v1/explorer",
+				"/v1/graphiql",
+				"/graphql/console",
+				"/graphql.php",
+				"/graphiql.php"
 			],
 			"headers": [
 				{
