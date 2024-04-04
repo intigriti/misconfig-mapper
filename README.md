@@ -60,7 +60,7 @@ $ go build -o misconfig-mapper
 $ ./misconfig-mapper -target "yourcompanyname" -service "*"
 ```
 
-<figure><img src=".gitbook/assets/image%20(2).png" alt=""><figcaption></figcaption></figure>
+![Example 1](images/image_1.png "Example 1")
 
 **Example 2:** Only perform passive tests to enumerate all third-party services
 
