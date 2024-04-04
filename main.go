@@ -340,9 +340,9 @@ func main() {
 			break
     }
 
+	// Parse "permutations" CLI flag
 	var possibleDomains []string
 
-	// Parse "permutations" CLI flag
 	switch strings.ToLower(permutations) {
 		case "", "y", "yes", "true", "1":
 			// Perform permutations on target and scan all of them
@@ -359,10 +359,6 @@ func main() {
     }
 
 	fmt.Printf("[+] Checking %v possible target URLs...\n", len(possibleDomains))
-
-	fmt.Println("permutations, passiveOnly:", permutations, passiveOnly)
-
-	return
 
 	for _, selectedService := range selectedServices {
 		for _, domain := range possibleDomains {
