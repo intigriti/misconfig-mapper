@@ -128,7 +128,7 @@ To define more services, edit the services.json file and separate each misconfig
 
 ```json
 {
-	"id":			0,
+	"id":					0,
 	"request": {
 		"method":			"{METHOD}",
 		"baseURL":			"{BASE_URL}",
