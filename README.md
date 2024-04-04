@@ -98,20 +98,24 @@ Additionally, you can pass request headers using the `-headers` flag to comply w
 
 ```
 Usage of ./misconfig-mapper:
+  -delay int
+    	Specify a delay between each request sent in milliseconds to enforce a rate limit.
   -headers string
     	Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookie: xyz...;;"
-  -passive-only
-    	Only check for existing instances (don't check for misconfigurations). Default: "false"
-  -permutations
-    	Enable permutations and look for several other keywords of your target. Default: "true" (default true)
+  -passive-only string
+    	Only check for existing instances (don't check for misconfigurations).
+  -permutations string
+    	Enable permutations and look for several other keywords of your target. (default "true")
   -service string
-    	Specify the service ID you want to check for: "0" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services. (default "0")
+    	Specify the service ID you'd like to check for: "0" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services. (default "0")
   -services
     	Print all services with their associated IDs
   -target string
     	Specify your target domain name or company/organization name: "intigriti.com" or "intigriti"
-  -timeout float
-    	Specify a timeout for each request sent in seconds (default: "7.0"). (default 7)
+  -timeout int
+    	Specify a timeout for each request sent in milliseconds. (default 7000)
+  -verbose
+    	Print verbose messages
 ```
 
 # Templates

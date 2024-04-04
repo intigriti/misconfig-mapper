@@ -268,10 +268,10 @@ func PrintServices(services []Service, verbose bool) {
 func main() {
 	targetFlag := flag.String("target", "", "Specify your target domain name or company/organization name: \"intigriti.com\" or \"intigriti\"")
 	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services.")
-	passiveOnlyFlag := flag.Bool("passive-only", false, "Only check for existing instances (don't check for misconfigurations). Default: \"false\"")
-	permutationsFlag := flag.Bool("permutations", true, "Enable permutations and look for several other keywords of your target. Default: \"true\"")
+	passiveOnlyFlag := flag.String("passive-only", "", "Only check for existing instances (don't check for misconfigurations).")
+	permutationsFlag := flag.String("permutations", "true", "Enable permutations and look for several other keywords of your target.")
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookie: xyz...;;\"")
-	delayFlag := flag.Int("delay", 0, "Specify a delay between each request sent in milliseconds to enforce a rate limit (default: \"0\").")
+	delayFlag := flag.Int("delay", 0, "Specify a delay between each request sent in milliseconds to enforce a rate limit.")
 	timeoutFlag := flag.Int("timeout", 7000, "Specify a timeout for each request sent in milliseconds.")
 	servicesFlag := flag.Bool("services", false, "Print all services with their associated IDs")
 	verboseFlag := flag.Bool("verbose", false, "Print verbose messages")
@@ -280,12 +280,13 @@ func main() {
 
 	var target string = *targetFlag
 	var service string = *serviceFlag
-	var passiveOnly bool = *passiveOnlyFlag
-	var permutations bool = *permutationsFlag
+	var permutations string = *permutationsFlag
 	var requestHeaders map[string]string = ParseRequestHeaders(*requestHeadersFlag)
 	var delay int = *delayFlag
 	var timeout int = *timeoutFlag
 	var verbose bool = *verboseFlag
+
+	flag.Parse()
 
 	services, err := LoadServices()
 	if err != nil {
@@ -324,17 +325,44 @@ func main() {
 		selectedServices = append(selectedServices, s.([]Service)...)
 	}
 
+	// Parse "passive-only" CLI flag
+	var passiveOnly bool = false
+
+	switch strings.ToLower(*passiveOnlyFlag) {
+		case "", "y", "yes", "true", "1":
+			passiveOnly = true
+			break
+		case "n", "no", "false", "0":
+			passiveOnly = false
+			break
+		default:
+			passiveOnly = false
+			break
+    }
+
 	var possibleDomains []string
 
-	if !!permutations {
-		// Perform permutations on target and scan all of them
-		possibleDomains = ReturnPossibleDomains(target)
-	} else {
-		// Only perfom scan on the supplied target flag value
-		possibleDomains = append(possibleDomains, target)
-	}
+	// Parse "permutations" CLI flag
+	switch strings.ToLower(permutations) {
+		case "", "y", "yes", "true", "1":
+			// Perform permutations on target and scan all of them
+			possibleDomains = ReturnPossibleDomains(target)
+			break
+		case "n", "no", "false", "0":
+			// Only perfom scan on the supplied target flag value
+			possibleDomains = append(possibleDomains, target)
+			break
+		default:
+			// Only perfom scan on the supplied target flag value
+			possibleDomains = append(possibleDomains, target)
+			break
+    }
 
 	fmt.Printf("[+] Checking %v possible target URLs...\n", len(possibleDomains))
+
+	fmt.Println("permutations, passiveOnly:", permutations, passiveOnly)
+
+	return
 
 	for _, selectedService := range selectedServices {
 		for _, domain := range possibleDomains {
