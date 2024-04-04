@@ -165,11 +165,15 @@ To define more services, edit the services.json file and separate each misconfig
 }
 ```
 
+## Template Type Definitions
+
 ### **ID**
 
 **Type:** number\
 \
 The `id` field is used to identify the service when the `-service` flag is provided. It should be a numerical value that follows the sequence of previous IDs.
+
+## Request
 
 ### **Method**
 
@@ -209,6 +213,36 @@ The `path` field checks whether the service is vulnerable by observing the respo
 > -   https://example.com/app/yourcompanyname-eu
 > -   ...
 
+### **Body**
+
+**Type:** string | null
+
+The `body` field is used to supply a raw request body.
+
+> [!NOTE]
+> Set the request body to **null** if there's no need to send a request body.
+
+## Response
+
+### **StatusCode**
+
+**Type:** int
+
+The `statusCode` field is used to validate the matching response status code and further minimize the chances of false positive results.
+
+### **Passive**
+
+**Type:** string array
+
+The `passive` field supports enumeration & validation of a third-party service for your target. We recommend defining strict keywords to minimize the chances of false positive results.
+
+### **Active**
+
+**Type:** string array
+
+The `active` field is used to validate the existence of a misconfigured third-party service for your target. Make sure to define strict keywords to minimize the chances of false positive results.
+
+## Metadata
 
 ### **Service**
 
@@ -230,18 +264,6 @@ The `reproductionSteps` field reports back on how to reproduce the found misconf
 
 > [!NOTE]
 > Each step should be in a separate array entry. You can specify as many steps as you'd like to.
-
-### **Passive**
-
-**Type:** string array
-
-The `passive` field supports enumeration & validation of a third-party service for your target. We recommend defining strict keywords to minimize the chances of false positive results.
-
-### **Active**
-
-**Type:** string array
-
-The `active` field is used to validate the existence of a misconfigured third-party service for your target. Make sure to define strict keywords to minimize the chances of false positive results.
 
 ### **References**
 
