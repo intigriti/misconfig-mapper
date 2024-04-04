@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"crypto/tls"
 	"encoding/json"
+	"golang.org/x/time/rate"
 )
 
 /* /TYPES */
@@ -156,14 +157,14 @@ func GetService(id string, services []Service) interface{} {
 	return nil
 }
 
-func CheckResponse(result *Result, service Service, passiveOnly bool, requestHeaders map[string]string, timeout int, verbose bool) {
+func CheckResponse(result *Result, service Service, passiveOnly bool, requestHeaders map[string]string, timeout int, maxRedirects int, verbose bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout) * time.Millisecond)
 	defer cancel()
 
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			// Follow max 4 redirects
-			if len(via) >= 4 {
+			// Follow max amount of specified redirects
+			if len(via) >= maxRedirects {
 				return fmt.Errorf("[-] Error: Too many redirects encountered for %v\n", result.URL)
 			}
 			return nil
@@ -244,7 +245,7 @@ func PrintResult(result Result, passiveOnly bool) {
 		fmt.Printf("\t- %s\n", step)
 	}
 
-	fmt.Println("\nReference:")
+	fmt.Println("\nReferences:")
 	for _, ref := range result.Service.References {
 		fmt.Printf("\t- %s\n", ref)
 	}
@@ -273,6 +274,7 @@ func main() {
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookie: xyz...;;\"")
 	delayFlag := flag.Int("delay", 0, "Specify a delay between each request sent in milliseconds to enforce a rate limit.")
 	timeoutFlag := flag.Int("timeout", 7000, "Specify a timeout for each request sent in milliseconds.")
+	maxRedirectsFlag := flag.Int("max-redirects", 3, "Specify the max amount of redirects to follow.")
 	servicesFlag := flag.Bool("services", false, "Print all services with their associated IDs")
 	verboseFlag := flag.Bool("verbose", false, "Print verbose messages")
 
@@ -284,6 +286,7 @@ func main() {
 	var requestHeaders map[string]string = ParseRequestHeaders(*requestHeadersFlag)
 	var delay int = *delayFlag
 	var timeout int = *timeoutFlag
+	var maxRedirects int = *maxRedirectsFlag
 	var verbose bool = *verboseFlag
 
 	flag.Parse()
@@ -304,6 +307,7 @@ func main() {
 		return
 	}
 
+	limiter := rate.NewLimiter(rate.Every(time.Duration(delay) * time.Millisecond), 1)
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
 		InsecureSkipVerify: true,
 	}
@@ -362,6 +366,8 @@ func main() {
 
 	for _, selectedService := range selectedServices {
 		for _, domain := range possibleDomains {
+			limiter.Wait(context.Background())
+
 			var result Result
 			targetURL := strings.Replace(fmt.Sprintf("%v%v", selectedService.BaseURL, selectedService.Path), "{TARGET}", fmt.Sprintf("%s", domain), -1)
 
@@ -381,9 +387,7 @@ func main() {
 			result.Exists = false // Default value
 			result.Vulnerable = false // Default value
 
-			time.Sleep(time.Duration(delay) * time.Millisecond)
-
-			CheckResponse(&result, selectedService, passiveOnly, requestHeaders, timeout, verbose)
+			CheckResponse(&result, selectedService, passiveOnly, requestHeaders, timeout, maxRedirects, verbose)
 
 			if result.Exists || result.Vulnerable {
 				PrintResult(result, passiveOnly)
