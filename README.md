@@ -65,7 +65,7 @@ $ ./misconfig-mapper -target "yourcompanyname" -service "*"
 **Example 2:** Only perform passive tests to enumerate all third-party services
 
 ```bash
-$ ./misconfig-mapper -target "yourcompanyname" -service "*" -passive-only
+$ ./misconfig-mapper -target "yourcompanyname" -service "*" -passive-only true
 ```
 
 ![Example 2](images/example_2.png "Example 2")
@@ -73,7 +73,7 @@ $ ./misconfig-mapper -target "yourcompanyname" -service "*" -passive-only
 **Example 3:** Only test for one specific service (by ID or name)
 
 ```bash
-$ ./misconfig-mapper -target "yourcompanyname" -service "1"
+$ ./misconfig-mapper -target "yourcompanyname" -service 1
 ```
 
 ```bash

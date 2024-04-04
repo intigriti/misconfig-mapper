@@ -342,7 +342,7 @@ func main() {
 		default:
 			passiveOnly = false
 			break
-    }
+	}
 
 	// Parse "permutations" CLI flag
 	var possibleDomains []string
