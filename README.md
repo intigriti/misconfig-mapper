@@ -10,7 +10,7 @@ Curated by @INTIGRITI for the community!
 
 _**Misconfig Mapper**_ has a [dedicated open-source CLI tool](https://github.com/intigriti/service-scanner) written in Golang to help you automate the testing of most misconfigurations found on covered services.\
 \
-It can enumerate dedicated instances of services that your company may use and perform passive & active tests to check for certain misconfigurations at scale!\
+It can identify and enumerate instances of services used by your company, and perform detection and misconfiguration checks at scale! By supplying a template with detection fingerprints and misconfiguration check fingerprints, the tool can quickly and accurately identify potential security risks in popular third-party software and services!\
 \
 The tool is based on templates and is versatile. New services can be easily added by adding them to the `services.json` file.
 
@@ -18,7 +18,7 @@ The tool is based on templates and is versatile. New services can be easily adde
 
 -   The CLI tool is based on templates defined in the `services.json` file. You can add as many as you want. See [_Templates section_](cli-tool.md#templates) for more information on how to add a template.
 -   If you provide a company name, the tool will automatically generate permutations based on the keyword you provided and try to find any matching services.
--   You can optionally choose only to enumerate services and not perform any active tests (see more on [_Usage section_](cli-tool.md#usage)).
+-   You can also optionally select to only detect the presence of services without performing any misconfiguration checks (see more on [_Usage section_](cli-tool.md#usage)).
 
 # Installation
 
@@ -54,7 +54,7 @@ $ go build -o misconfig-mapper
 
 # Usage
 
-**Example 1:** Perform active tests to enumerate all misconfigured third-party services
+**Example 1:** Perform a scan to enumerate all misconfigured third-party services
 
 ```basic
 $ ./misconfig-mapper -target "yourcompanyname" -service "*"
@@ -62,10 +62,10 @@ $ ./misconfig-mapper -target "yourcompanyname" -service "*"
 
 ![Example 1](images/example_1.png "Example 1")
 
-**Example 2:** Only perform passive tests to enumerate all third-party services
+**Example 2:** Perform a detection-only scan to enumerate all third-party services (without checking for any misconfigurations)
 
 ```bash
-$ ./misconfig-mapper -target "yourcompanyname" -service "*" -passive-only true
+$ ./misconfig-mapper -target "yourcompanyname" -service "*" -skip-misconfiguration-checks true
 ```
 
 ![Example 2](images/example_2.png "Example 2")
@@ -106,12 +106,12 @@ Usage of ./misconfig-mapper:
     	Print all services with their associated IDs
   -max-redirects int
     	Specify the max amount of redirects to follow. (default 3)
-  -passive-only string
-    	Only check for existing instances (don't check for misconfigurations).
   -permutations string
     	Enable permutations and look for several other keywords of your target. (default "true")
   -service string
     	Specify the service ID you'd like to check for: "0" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services. (default "0")
+  -skip-misconfiguration-checks string
+    	Only check for existing instances (and skip checks for potential security misconfigurations).
   -target string
     	Specify your target domain name or company/organization name: "intigriti.com" or "intigriti"
   -timeout int
@@ -142,12 +142,12 @@ To define more services, edit the services.json file and separate each misconfig
 	},
 	"response": {
 		"statusCode": 200,
-		"passive":		[
+		"detectionFingerprints":		[
 			"{KEYWORD_1}",
 			"{KEYWORD_2}",
 			"..."
 		],
-		"active":		[
+		"fingerprints":		[
 			"{KEYWORD_1}",
 			"{KEYWORD_2}",
 			"..."
@@ -241,17 +241,23 @@ The `body` field is used to supply a raw request body.
 
 The `statusCode` field is used to validate the matching response status code and further minimize the chances of false positive results.
 
-### **Passive**
+### **Detection Fingerprints**
 
 **Type:** string array
 
-The `passive` field supports enumeration & validation of a third-party service for your target. We recommend defining strict keywords to minimize the chances of false positive results.
+The `detectionFingerprints` field supports enumeration & validation of a third-party service for your target. These fingerprints are used to mark the detection of a service or instance. Make sure to define strict regex patterns or keywords to minimize the chances of false positive results.
 
-### **Active**
+> [!TIP]
+> Regex patterns are supported!
+
+### **Fingerprints**
 
 **Type:** string array
 
-The `active` field is used to validate the existence of a misconfigured third-party service for your target. Make sure to define strict keywords to minimize the chances of false positive results.
+The `fingerprints` field is used to validate the existence of a misconfigured third-party service for your target. Make sure to define strict regex patterns or keywords to minimize the chances of false positive results.
+
+> [!TIP]
+> Regex patterns are supported!
 
 ## Metadata
 
