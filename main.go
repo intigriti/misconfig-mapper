@@ -22,34 +22,34 @@ import (
 /* /TYPES */
 
 type Service struct {
-	ID					int64					`json:"id"`
+	ID							int64					`json:"id"`
 	Request				struct		{
-		Method				string				`json:"method"`
-		BaseURL				string				`json:"baseURL"`
-		Path				[]string			`json:"path"`
-		Headers				[]map[string]string	`json:"headers"`
-		Body				any					`json:"body"`
+		Method					string				`json:"method"`
+		BaseURL					string				`json:"baseURL"`
+		Path					[]string			`json:"path"`
+		Headers					[]map[string]string	`json:"headers"`
+		Body					any					`json:"body"`
 	}	`json:"request"`
 	Response			struct		{
-		StatusCode			int64				`json:"statusCode"`
-		Passive				[]string			`json:"passive"`
-		Active				[]string			`json:"active"`
+		StatusCode				int64				`json:"statusCode"`
+		DetectionFingerprints	[]string			`json:"detectionFingerprints"`
+		Fingerprints			[]string			`json:"fingerprints"`
 	}	`json:"response"`
 	Metadata			struct		{
-		Service				string				`json:"service"`
-		ServiceName			string 				`json:"serviceName"`
-		Description			string	 			`json:"description"`
-		ReproductionSteps	[]string			`json:"reproductionSteps"`
-		References			[]string			`json:"references"`
+		Service					string				`json:"service"`
+		ServiceName				string 				`json:"serviceName"`
+		Description				string	 			`json:"description"`
+		ReproductionSteps		[]string			`json:"reproductionSteps"`
+		References				[]string			`json:"references"`
 	}	`json:"metadata"`
 }
 
 type Result struct {
-	URL					string		// Result URL
-	Exists				bool		// Used to report back in case the instance exists
-	Vulnerable			bool		// Used to report back in case the instance is vulnerable
-	ServiceId			string		// Service ID
-	Service				Service		// Service struct
+	URL							string		// Result URL
+	Exists						bool		// Used to report back in case the instance exists
+	Vulnerable					bool		// Used to report back in case the instance is vulnerable
+	ServiceId					string		// Service ID
+	Service						Service		// Service struct
 }
 
 /* TYPES/ */
@@ -57,22 +57,24 @@ type Result struct {
 /*
 	[
 		{
-			"id":						int64,
+			"id":							int64,
 			"request": {
-				"method":				string,
-				"baseURL":				string,
-				"path":					string
+				"method":					string,
+				"baseURL":					string,
+				"path":						string
+				"headers":					[]map[string]string
+				"body":						string | nil
 			},
 			"response": {
-				"statusCode":			int64,
-				"passive":				[]string,
-				"active":				[]string
+				"statusCode":				int64,
+				"detectionFingerprints":	[]string,
+				"fingerprints":				[]string
 			},
 			"metadata": {
-				"service":				string,
-				"description":			string,
-				"reproductionSteps":	[]string,
-				"references":			[]string
+				"service":					string,
+				"description":				string,
+				"reproductionSteps":		[]string,
+				"references":				[]string
 			}
 		}
 	]
@@ -178,7 +180,7 @@ func GetService(id string, services []Service) interface{} {
 	return nil
 }
 
-func CheckResponse(result *Result, service Service, passiveOnly bool, requestHeaders map[string]string, timeout int, maxRedirects int, verbose bool) {
+func CheckResponse(result *Result, service Service, skipChecks bool, requestHeaders map[string]string, timeout int, maxRedirects int, verbose bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout) * time.Millisecond)
 	defer cancel()
 
@@ -251,24 +253,24 @@ func CheckResponse(result *Result, service Service, passiveOnly bool, requestHea
 			statusCodeMatched = true
 		}
 
-		if passiveOnly {
-			pattern := fmt.Sprintf(`%s`, ParseRegex(service.Response.Passive)) // Transform array into regex pattern
+		if skipChecks {
+			pattern := fmt.Sprintf(`%s`, ParseRegex(service.Response.DetectionFingerprints)) // Transform array into regex pattern
 			result.Exists = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf("%s", string(body))) && statusCodeMatched
 
 			return
 		}
 
-		pattern := fmt.Sprintf(`%s`, ParseRegex(service.Response.Active)) // Transform array into regex pattern
+		pattern := fmt.Sprintf(`%s`, ParseRegex(service.Response.Fingerprints)) // Transform array into regex pattern
 		result.Vulnerable = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf("%s", string(body))) && statusCodeMatched
 	}
 
 	return
 }
 
-func PrintResult(result Result, passiveOnly bool, width int) {
+func PrintResult(result Result, skipChecks bool, width int) {
 	fmt.Println(strings.Repeat("-", width))
 
-	if passiveOnly {
+	if skipChecks {
 		fmt.Printf("[+] 1 %s Instance found!\n", result.Service.Metadata.ServiceName)
 	} else {
 		fmt.Println("[+] 1 Vulnerable result found!")
@@ -313,7 +315,7 @@ func PrintServices(services []Service, verbose bool, width int) {
 func main() {
 	targetFlag := flag.String("target", "", "Specify your target domain name or company/organization name: \"intigriti.com\" or \"intigriti\"")
 	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services.")
-	passiveOnlyFlag := flag.String("passive-only", "", "Only check for existing instances (don't check for misconfigurations).")
+	skipChecksFlag := flag.String("skip-misconfiguration-checks", "", "Only check for existing instances (and skip checks for potential security misconfigurations).")
 	permutationsFlag := flag.String("permutations", "true", "Enable permutations and look for several other keywords of your target.")
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookie: xyz...;;\"")
 	delayFlag := flag.Int("delay", 0, "Specify a delay between each request sent in milliseconds to enforce a rate limit.")
@@ -374,18 +376,18 @@ func main() {
 		selectedServices = append(selectedServices, s.([]Service)...)
 	}
 
-	// Parse "passive-only" CLI flag
-	var passiveOnly bool = false
+	// Parse "skip-misconfiguration-checks" CLI flag
+	var skipChecks bool = false
 
-	switch strings.ToLower(*passiveOnlyFlag) {
+	switch strings.ToLower(*skipChecksFlag) {
 		case "", "y", "yes", "true", "on", "1":
-			passiveOnly = true
+			skipChecks = true
 			break
 		case "n", "no", "false", "off", "0":
-			passiveOnly = false
+			skipChecks = false
 			break
 		default:
-			passiveOnly = false
+			skipChecks = false
 			break
 	}
 
@@ -451,10 +453,10 @@ func main() {
 				result.Exists = false // Default value
 				result.Vulnerable = false // Default value
 
-				CheckResponse(&result, selectedService, passiveOnly, requestHeaders, timeout, maxRedirects, verbose)
+				CheckResponse(&result, selectedService, skipChecks, requestHeaders, timeout, maxRedirects, verbose)
 
 				if result.Exists || result.Vulnerable {
-					PrintResult(result, passiveOnly, width)
+					PrintResult(result, skipChecks, width)
 
 					break
 				} else {

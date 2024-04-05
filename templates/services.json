@@ -11,10 +11,10 @@
 		},
 		"response": {
 			"statusCode": 200,
-			"passive": [
+			"detectionFingerprints": [
 				"Sign up for Jira"
 			],
-			"active": [
+			"fingerprints": [
 				"Sign up for Jira"
 			]
 		},
@@ -41,11 +41,11 @@
 		},
 		"response": {
 			"statusCode": 200,
-			"passive": [
+			"detectionFingerprints": [
 				"&quot;sdUserSignUpEnabled&quot;:true",
 				"Log in to Jira, Confluence, and all other Atlassian Cloud products here."
 			],
-			"active": [
+			"fingerprints": [
 				"&quot;sdUserSignUpEnabled&quot;:true",
 				"Log in to Jira, Confluence, and all other Atlassian Cloud products here."
 			]
@@ -75,11 +75,11 @@
 		},
 		"response": {
 			"statusCode": 200,
-			"passive": [
+			"detectionFingerprints": [
 				"&quot;teamName&quot;:&quot;",
 				"data-props"
 			],
-			"active": [
+			"fingerprints": [
 				"&quot;teamName&quot;:&quot;",
 				"data-props"
 			]
@@ -107,10 +107,10 @@
 		},
 		"response": {
 			"statusCode": 200,
-			"passive": [
+			"detectionFingerprints": [
 				"Conversations"
 			],
-			"active": [
+			"fingerprints": [
 				"Conversations"
 			]
 		},
@@ -137,11 +137,11 @@
 		},
 		"response": {
 			"statusCode": 200,
-			"passive": [
+			"detectionFingerprints": [
 				"AccessDenied",
 				"Anonymous caller does not have"
 			],
-			"active": [
+			"fingerprints": [
 				"ListBucketResult",
 				"Name",
 				"Contents"
@@ -170,12 +170,12 @@
 		},
 		"response": {
 			"statusCode": 200,
-			"passive": [
+			"detectionFingerprints": [
 				"Signup not supported [Jenkins]",
 				"This is not supported in the current configuration.",
 				"Jenkins"
 			],
-			"active": [
+			"fingerprints": [
 				"Create an account!"
 			]
 		},
@@ -202,12 +202,12 @@
 		},
 		"response": {
 			"statusCode": 200,
-			"passive": [
+			"detectionFingerprints": [
 				"Authentication required",
 				"You are authenticated as:",
 				"Groups that you are in:"
 			],
-			"active": [
+			"fingerprints": [
 				"Script Console",
 				"Groovy Script"
 			]
@@ -235,12 +235,12 @@
 		},
 		"response": {
 			"statusCode": 200,
-			"passive": [
+			"detectionFingerprints": [
 				"Explore GitLab",
 				"Discover projects, groups and snippets. Share your projects with others",
 				"No snippets found"
 			],
-			"active": [
+			"fingerprints": [
 				"Explore snippets",
 				"Created",
 				"updated"
@@ -269,10 +269,10 @@
 		},
 		"response": {
 			"statusCode": 200,
-			"passive": [
+			"detectionFingerprints": [
 				"Drupal"
 			],
-			"active": [
+			"fingerprints": [
 				"content=\"Drupal"
 			]
 		},
@@ -299,8 +299,8 @@
 		},
 		"response": {
 			"statusCode": 200,
-			"passive": [],
-			"active": [
+			"detectionFingerprints": [],
+			"fingerprints": [
 				"Stack trace",
 				"Request",
 				"App",
@@ -330,8 +330,8 @@
 		},
 		"response": {
 			"statusCode": 200,
-			"passive": [],
-			"active": [
+			"detectionFingerprints": [],
+			"fingerprints": [
 				"Laravel",
 				"Telescope",
 				"Requests",
@@ -375,8 +375,8 @@
 		},
 		"response": {
 			"statusCode": 200,
-			"passive": [],
-			"active": [
+			"detectionFingerprints": [],
+			"fingerprints": [
 				"\"__schema\"",
 				"\"name\":(.*)?\"__Directive\"",
 				"The __Directive type represents a Directive that a server supports."
