@@ -105,8 +105,8 @@ _auto_completion_misconfig_mapper "$@"
 > [!IMPORTANT]
 > Make sure to save this file as `_auto_completion_misconfig_mapper` under your `$fpath`.
 > Afterwards, you will have to initialize the completion system with:
-> ```\
-> autoload -U compinit \
+> ```
+> autoload -U compinit
 > compinit
 > ```
 
