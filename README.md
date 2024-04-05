@@ -52,6 +52,64 @@ $ go build -o misconfig-mapper
 
 2. Finally, add or move the binary to a folder in your `$PATH` (optional)
 
+
+### CLI Auto-Completion
+In case you would like to enable autocompletions for Misconfig Mapper, we support both Bash and ZSH.
+
+#### Bash
+```bash
+#!/bin/bash
+_misconfig_mapper_autocomplete()
+{
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    opts="-target -service -permutations -skip-misconfiguration-checks -list-services -max-redirects -headers -delay -timeout -verbose"
+
+    if [[ ${cur} == -* ]] ; then
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
+}
+
+complete -F _misconfig_mapper_autocomplete misconfig-mapper
+```
+
+#### ZSH (OhMyZsh)
+```zsh
+#!/bin/zsh
+#compdef misconfig-mapper
+
+_auto_completion_misconfig_mapper() {
+    local -a options=("-target" "-service" "-permutations" "-skip-misconfiguration-checks" "-list-services" "-max-redirects" "-headers" "-delay" "-timeout" "-verbose")
+
+    _arguments \
+        '*: :->args' \
+        "*: :(${(j:|:)options})"
+
+    case $state in
+        (args)
+            # Handle arguments completion here
+            ;;
+        (*)
+            # Handle options completion here
+            compadd -a options
+            ;;
+    esac
+}
+
+_auto_completion_misconfig_mapper "$@"
+```
+
+> [!IMPORTANT]
+> Make sure to save this file as `_auto_completion_misconfig_mapper` under your `$fpath`.
+> Afterwards, you will have to initialize the completion system with:
+> ```\
+> autoload -U compinit \
+> compinit
+> ```
+
 # Usage
 
 **Example 1:** Perform a scan to enumerate all misconfigured third-party services
