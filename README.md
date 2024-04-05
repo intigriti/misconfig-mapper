@@ -8,7 +8,7 @@ Curated by @INTIGRITI for the community!
 
 # CLI Tool
 
-_**Misconfig Mapper**_ has a [dedicated open-source CLI tool](https://github.com/intigriti/service-scanner) written in Golang to help you automate the testing of most misconfigurations found on covered services.\
+**Misconfig Mapper** has a [dedicated open-source CLI tool](https://github.com/intigriti/service-scanner) written in Golang to help you automate the testing of most misconfigurations found on covered services.\
 \
 It can identify and enumerate instances of services used by your company, and perform detection and misconfiguration checks at scale! By supplying a template with detection fingerprints and misconfiguration check fingerprints, the tool can quickly and accurately identify potential security risks in popular third-party software and services!\
 \
