@@ -457,11 +457,14 @@ func main() {
 
 				if result.Exists || result.Vulnerable {
 					PrintResult(result, skipChecks, width)
-
 					break
 				} else {
 					if !result.Exists {
-						fmt.Printf("[-] No %s instance vulnerable found (%s)\n", result.Service.Metadata.ServiceName, result.URL)
+						if skipChecks {
+							fmt.Printf("[-] No %s instance found (%s)\n", result.Service.Metadata.ServiceName, result.URL)
+						} else {
+							fmt.Printf("[-] No vulnerable %s instance found (%s)\n", result.Service.Metadata.ServiceName, result.URL)
+						}
 						continue
 					}
 
