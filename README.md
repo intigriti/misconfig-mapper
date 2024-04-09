@@ -1,14 +1,12 @@
 # Misconfig Mapper
 
-A list of with the most common misconfigurations among popular services used by bug bounty targets and online (software) companies!
-
-Curated by @INTIGRITI for the community!
+Misconfig Mapper is a project by Intigriti for the community to help you find, detect and resolve common security misconfigurations in various popular services, technologies and SaaS-based solutions that your targets use!
 
 ![image](./images/logo.png)
 
 # CLI Tool
 
-**Misconfig Mapper** has a [dedicated open-source CLI tool](https://github.com/intigriti/service-scanner) written in Golang to help you automate the testing of most misconfigurations found on covered services.\
+**Misconfig Mapper** has a [dedicated open-source CLI tool](https://github.com/intigriti/misconfig-mapper) written in Golang to help you automate the testing of most misconfigurations found on covered services.\
 \
 It can identify and enumerate instances of services used by your company, and perform detection and misconfiguration checks at scale! By supplying a template with detection fingerprints and misconfiguration check fingerprints, the tool can quickly and accurately identify potential security risks in popular third-party software and services!\
 \
@@ -22,18 +20,7 @@ The tool is based on templates and is versatile. New services can be easily adde
 
 # Installation
 
-1. Clone this repository:
-
-```bash
-$ git clone https://github.com/intigriti/misconfig-mapper.git
-```
-
-2. Run the pre-compiled binary (see [usage](cli-tool.md#usage) for more information).
-
-```bash
-$ ./misconfig-mapper -help
-```
-
+To install Misconfig Mapper, you can clone the repository and compile the code from source or [download the latest release](https://github.com/intigriti/misconfig-mapper/releases).
 
 ### From source
 
@@ -44,13 +31,19 @@ $ go version
   go version go1.21.5 linux/amd64
 ```
 
-1. Next, compile your binary from source:
+1. Clone this repository:
+
+```bash
+$ git clone https://github.com/intigriti/misconfig-mapper.git
+```
+
+2. Next, compile your binary from source:
 
 ```bash
 $ go build -o misconfig-mapper
 ```
 
-2. Finally, add or move the binary to a folder in your `$PATH` (optional)
+3. Finally, add or move the binary to a folder in your `$PATH` (optional)
 
 
 ### CLI Auto-Completion
