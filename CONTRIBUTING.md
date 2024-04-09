@@ -14,4 +14,6 @@ The latest type definitions and template schema can be found [here](/assets/temp
 
 If you encountered any unexpected behavior, you may always [open a new issue](https://github.com/intigriti/misconfig-mapper-docs/issues/new/choose).
 
-Please do include as much information as possible to help us understand the root cause of it. 
+Please do include as much information as possible to help us understand the root cause of it.
+
+Thank you for all your contributions!

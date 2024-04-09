@@ -380,10 +380,10 @@ func main() {
 	var skipChecks bool = false
 
 	switch strings.ToLower(*skipChecksFlag) {
-		case "", "y", "yes", "true", "on", "1":
+		case "", "y", "yes", "true", "on", "1", "enable":
 			skipChecks = true
 			break
-		case "n", "no", "false", "off", "0":
+		case "n", "no", "false", "off", "0", "disable":
 			skipChecks = false
 			break
 		default:
@@ -396,10 +396,10 @@ func main() {
 	var permutations bool
 
 	switch strings.ToLower(*permutationsFlag) {
-		case "", "y", "yes", "true", "on", "1":
+		case "", "y", "yes", "true", "on", "1", "enable":
 			permutations = true
 			break
-		case "n", "no", "false", "off", "0":
+		case "n", "no", "false", "off", "0", "disable":
 			permutations = false
 			break
 		default:
