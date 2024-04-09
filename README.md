@@ -2,7 +2,7 @@
 
 Misconfig Mapper is a project by Intigriti for the community to help you find, detect and resolve common security misconfigurations in various popular services, technologies and SaaS-based solutions that your targets use!
 
-![image](./images/logo.png)
+![image](./assets/images/logo.png)
 
 # CLI Tool
 
@@ -111,7 +111,7 @@ _auto_completion_misconfig_mapper "$@"
 $ ./misconfig-mapper -target "yourcompanyname" -service "*"
 ```
 
-![Example 1](images/example_1.png "Example 1")
+![Example 1](./assets/images/example_1.png "Example 1")
 
 **Example 2:** Perform a detection-only scan to enumerate all third-party services (without checking for any misconfigurations)
 
@@ -119,7 +119,7 @@ $ ./misconfig-mapper -target "yourcompanyname" -service "*"
 $ ./misconfig-mapper -target "yourcompanyname" -service "*" -skip-misconfiguration-checks true
 ```
 
-![Example 2](images/example_2.png "Example 2")
+![Example 2](./assets/images/example_2.png "Example 2")
 
 **Example 3:** Only test for one specific service (by ID or name)
 
@@ -131,7 +131,7 @@ $ ./misconfig-mapper -target "yourcompanyname" -service 1
 $ ./misconfig-mapper -target "yourcompanyname" -service "drupal"
 ```
 
-![Example 3](images/example_3.png "Example 3")
+![Example 3](./assets/images/example_3.png "Example 3")
 
 **Example 4:** Print out all loaded services
 
@@ -139,7 +139,7 @@ $ ./misconfig-mapper -target "yourcompanyname" -service "drupal"
 $ ./misconfig-mapper -list-services
 ```
 
-![Example 4](images/example_4.png "Example 4")
+![Example 4](./assets/images/example_4.png "Example 4")
 
 Additionally, you can pass request headers using the `-headers` flag to comply with any request requirements (separate each header using a **double semi-colon**):
 
@@ -175,51 +175,9 @@ Usage of ./misconfig-mapper:
 
 You can easily define more templates to scan for. Templates are in a structured JSON object and read from `services.json`\
 \
-To define more services, edit the services.json file and separate each misconfiguration in your services.json file.
+To define more services, edit the services.json file and separate each misconfiguration in your `services.json` file.
 
-```json
-{
-	"id":					0,
-	"request": {
-		"method":			"{METHOD}",
-		"baseURL":			"{BASE_URL}",
-		"path":				"{PATH}",
-		"headers":		[
-			{
-				"{HEADER}": "{VALUE}"
-			}
-		],
-		"body":				null
-	},
-	"response": {
-		"statusCode": 200,
-		"detectionFingerprints":		[
-			"{KEYWORD_1}",
-			"{KEYWORD_2}",
-			"..."
-		],
-		"fingerprints":		[
-			"{KEYWORD_1}",
-			"{KEYWORD_2}",
-			"..."
-		],
-	},
-	"metadata": {
-		"service":		"{SERVICE_NAME}",
-		"description":		"{DESCRIPTION}",
-		"reproductionSteps":	[
-			"{STEP_1}",
-			"{STEP_2}",
-			"..."
-		],
-		"references":		[
-			"{REFERENCE_1}",
-			"{REFERENCE_2}",
-			"..."
-		]
-	}
-}
-```
+An example template definition schema is available [here](./assets/template-schema.json).
 
 ## Template Type Definitions
 
@@ -344,7 +302,7 @@ The' references' field documents enumerated and misconfigured services. These re
 
 # Contributions
 
-Learn more on how to contribute to the project.
+Misconfig Mapper is open-source and made for the community! We encourage you to contribute to the project! Please see the [Contributing guideline](CONTRIBUTING.md) on how to contribute and further improve Misconfig Mapper!
 
 # License
 
