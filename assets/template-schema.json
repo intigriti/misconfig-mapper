@@ -1,38 +1,38 @@
 {
-	"id":					0,
+	"id": 0,
 	"request": {
-		"method":			"{METHOD}",
-		"baseURL":			"{BASE_URL}",
-		"path":				"{PATH}",
-		"headers":		[
+		"method": "{METHOD}",
+		"baseURL": "{BASE_URL}",
+		"path": "{PATH}",
+		"headers": [
 			{
 				"{HEADER}": "{VALUE}"
 			}
 		],
-		"body":				null
+		"body": null
 	},
 	"response": {
 		"statusCode": 200,
-		"detectionFingerprints":		[
+		"detectionFingerprints": [
 			"{KEYWORD_1}",
 			"{KEYWORD_2}",
 			"..."
 		],
-		"fingerprints":		[
+		"fingerprints": [
 			"{KEYWORD_1}",
 			"{KEYWORD_2}",
 			"..."
-		],
+		]
 	},
 	"metadata": {
-		"service":		"{SERVICE_NAME}",
-		"description":		"{DESCRIPTION}",
-		"reproductionSteps":	[
+		"service": "{SERVICE_NAME}",
+		"description": "{DESCRIPTION}",
+		"reproductionSteps": [
 			"{STEP_1}",
 			"{STEP_2}",
 			"..."
 		],
-		"references":		[
+		"references": [
 			"{REFERENCE_1}",
 			"{REFERENCE_2}",
 			"..."
