@@ -1,0 +1,402 @@
+[
+	{
+		"id": 0,
+		"request": {
+			"method": "GET",
+			"baseURL": "https://{TARGET}.atlassian.net",
+			"path": [
+				"/secure/Signup!default.jspa"
+			],
+			"body": null
+		},
+		"response": {
+			"statusCode": 200,
+			"detectionFingerprints": [
+				"Sign up for Jira"
+			],
+			"fingerprints": [
+				"Sign up for Jira"
+			]
+		},
+		"metadata": {
+			"service": "atlassian",
+			"serviceName": "Atlassian Jira Open Signups",
+			"description": "Atlassian Jira Open Signups",
+			"reproductionSteps": [
+				"Visit the URL",
+				"Follow the steps in the references"
+			],
+			"references": []
+		}
+	},
+	{
+		"id": 1,
+		"request": {
+			"method": "GET",
+			"baseURL": "https://{TARGET}.atlassian.net",
+			"path": [
+				"/servicedesk/customer/user/login"
+			],
+			"body": null
+		},
+		"response": {
+			"statusCode": 200,
+			"detectionFingerprints": [
+				"&quot;sdUserSignUpEnabled&quot;:true",
+				"Log in to Jira, Confluence, and all other Atlassian Cloud products here."
+			],
+			"fingerprints": [
+				"&quot;sdUserSignUpEnabled&quot;:true",
+				"Log in to Jira, Confluence, and all other Atlassian Cloud products here."
+			]
+		},
+		"metadata": {
+			"service": "atlassian",
+			"serviceName": "Atlassian Jira Service Desk",
+			"description": "Atlassian Jira Service Desk Open Signups",
+			"reproductionSteps": [
+				"Visit the URL",
+				"Follow the instructions to signup"
+			],
+			"references": [
+				"https://medium.com/@intideceukelaire/hundreds-of-internal-servicedesks-exposed-due-to-covid-19-ecd0baec87bd"
+			]
+		}
+	},
+	{
+		"id": 2,
+		"request": {
+			"method": "GET",
+			"baseURL": "https://{TARGET}.slack.com",
+			"path": [
+				"/"
+			],
+			"body": null
+		},
+		"response": {
+			"statusCode": 200,
+			"detectionFingerprints": [
+				"&quot;teamName&quot;:&quot;",
+				"data-props"
+			],
+			"fingerprints": [
+				"&quot;teamName&quot;:&quot;",
+				"data-props"
+			]
+		},
+		"metadata": {
+			"service": "slack",
+			"serviceName": "Slack",
+			"description": "Slack messaging service",
+			"reproductionSteps": [
+				"Visit the URL",
+				"Follow the steps in the references"
+			],
+			"references": []
+		}
+	},
+	{
+		"id": 3,
+		"request": {
+			"method": "GET",
+			"baseURL": "https://groups.google.com",
+			"path": [
+				"/g/{TARGET}"
+			],
+			"body": null
+		},
+		"response": {
+			"statusCode": 200,
+			"detectionFingerprints": [
+				"Conversations"
+			],
+			"fingerprints": [
+				"Conversations"
+			]
+		},
+		"metadata": {
+			"service": "google",
+			"serviceName": "Google Groups Misconfigured Read Permissions",
+			"description": "Google Groups can be left misconfigured and leak sensitive company data if access permissions aren't properly set",
+			"reproductionSteps": [
+				"Visit the URL",
+				"Follow the steps in the references"
+			],
+			"references": []
+		}
+	},
+	{
+		"id": 4,
+		"request": {
+			"method": "GET",
+			"baseURL": "https://{TARGET}.storage.googleapis.com",
+			"path": [
+				"/"
+			],
+			"body": null
+		},
+		"response": {
+			"statusCode": 200,
+			"detectionFingerprints": [
+				"AccessDenied",
+				"Anonymous caller does not have"
+			],
+			"fingerprints": [
+				"ListBucketResult",
+				"Name",
+				"Contents"
+			]
+		},
+		"metadata": {
+			"service": "google",
+			"serviceName": "Google CloudStorage Bucket Misconfigured Read Permissions",
+			"description": "GCP Storage Bucket can be left misconfigured and allow anyone to access files and objects potentially containing sensitive data if access permissions aren't properly enforced",
+			"reproductionSteps": [
+				"Visit the URL",
+				"Observe the response for any disclosed information (like private files). View the references for more information."
+			],
+			"references": []
+		}
+	},
+	{
+		"id": 5,
+		"request": {
+			"method": "GET",
+			"baseURL": "https://jenkins.{TARGET}",
+			"path": [
+				"/signup"
+			],
+			"body": null
+		},
+		"response": {
+			"statusCode": 200,
+			"detectionFingerprints": [
+				"Signup not supported [Jenkins]",
+				"This is not supported in the current configuration.",
+				"Jenkins"
+			],
+			"fingerprints": [
+				"Create an account!"
+			]
+		},
+		"metadata": {
+			"service": "jenkins",
+			"serviceName": "Jenkins Open Signups",
+			"description": "In case signups are not turned off, any user can create an account on the Jenkins instance and gain (privileged) access to (internal) developer resources.",
+			"reproductionSteps": [
+				"Visit the URL",
+				"Observe the response and follow the steps to create an account. View the references for more information."
+			],
+			"references": []
+		}
+	},
+	{
+		"id": 6,
+		"request": {
+			"method": "GET",
+			"baseURL": "https://jenkins.{TARGET}",
+			"path": [
+				"/console"
+			],
+			"body": null
+		},
+		"response": {
+			"statusCode": 200,
+			"detectionFingerprints": [
+				"Authentication required",
+				"You are authenticated as:",
+				"Groups that you are in:"
+			],
+			"fingerprints": [
+				"Script Console",
+				"Groovy Script"
+			]
+		},
+		"metadata": {
+			"service": "jenkins",
+			"serviceName": "Jenkins Public Groovy Script Console",
+			"description": "Groovy Script Console provides developers a way to run Groovy Script code right from their browser. However, in case permissions aren't configured properly, it could introduce another attack vector and often lead to remote code execution.",
+			"reproductionSteps": [
+				"Visit the URL",
+				"Observe the response and follow the steps to check for code execution. View the references for more information."
+			],
+			"references": []
+		}
+	},
+	{
+		"id": 7,
+		"request": {
+			"method": "GET",
+			"baseURL": "https://gitlab.{TARGET}",
+			"path": [
+				"/explore/snippets"
+			],
+			"body": null
+		},
+		"response": {
+			"statusCode": 200,
+			"detectionFingerprints": [
+				"Explore GitLab",
+				"Discover projects, groups and snippets. Share your projects with others",
+				"No snippets found"
+			],
+			"fingerprints": [
+				"Explore snippets",
+				"Created",
+				"updated"
+			]
+		},
+		"metadata": {
+			"service": "gitlab",
+			"serviceName": "Gitlab Private Source Code Snippets Exposed",
+			"description": "Your GitLab instance may expose sensitive source code or private repositories if read permissions on Project Snippets have been misconfigured.",
+			"reproductionSteps": [
+				"Visit the URL",
+				"Observe the response and follow the steps to check public snippets. View the references for more information."
+			],
+			"references": []
+		}
+	},
+	{
+		"id": 8,
+		"request": {
+			"method": "GET",
+			"baseURL": "https://{TARGET}",
+			"path": [
+				"/node/1"
+			],
+			"body": null
+		},
+		"response": {
+			"statusCode": 200,
+			"detectionFingerprints": [
+				"<meta name=\"generator\" content=\"Drupal",
+				"(https://www.drupal.org)",
+				"/sites/default/files/css/"
+			],
+			"fingerprints": [
+				"<meta name=\"generator\" content=\"Drupal"
+			]
+		},
+		"metadata": {
+			"service": "drupal",
+			"serviceName": "Drupal Nodes with Misconfigured Access Controls",
+			"description": "Drupal Nodes can contain sensitive data and if permissions are not enforced, they can leak private data to unauthorized users.",
+			"reproductionSteps": [
+				"Visit the URL",
+				"Observe the response and follow the steps to check public snippets. View the references for more information."
+			],
+			"references": []
+		}
+	},
+	{
+		"id": 9,
+		"request": {
+			"method": "GET",
+			"baseURL": "https://{TARGET}",
+			"path": [
+				"/_profiles"
+			],
+			"body": null
+		},
+		"response": {
+			"statusCode": 200,
+			"detectionFingerprints": [],
+			"fingerprints": [
+				"Stack trace",
+				"Request",
+				"App",
+				"Debug"
+			]
+		},
+		"metadata": {
+			"service": "laravel",
+			"serviceName": "Laravel Debug Mode Enabled",
+			"description": "Laravel can expose sensitive data when debug mode is left enabled.",
+			"reproductionSteps": [
+				"Visit the URL",
+				"Observe the response manually and check if debug mode is enabled on your target's Laravel application. View the references for more information."
+			],
+			"references": []
+		}
+	},
+	{
+		"id": 10,
+		"request": {
+			"method": "GET",
+			"baseURL": "https://{TARGET}",
+			"path": [
+				"/telescope/requests"
+			],
+			"body": null
+		},
+		"response": {
+			"statusCode": 200,
+			"detectionFingerprints": [],
+			"fingerprints": [
+				"Laravel",
+				"Telescope",
+				"Requests",
+				"Commands"
+			]
+		},
+		"metadata": {
+			"service": "laravel",
+			"serviceName": "Laravel Telescope enabled in production",
+			"description": "Telescope can help developers look at incoming HTTP requests, view exceptions, logs, database queries and much more.",
+			"reproductionSteps": [
+				"Visit the URL",
+				"Observe the response manually and check if Telescope is installed and used in your target's Laravel application. View the references for more information."
+			],
+			"references": []
+		}
+	},
+	{
+		"id": 11,
+		"request": {
+			"method": "POST",
+			"baseURL": "https://{TARGET}",
+			"path": [
+				"/graphql",
+				"/graphql/v1",
+				"/graph",
+				"/graphiql",
+				"/api/graphql",
+				"/v1/explorer",
+				"/v1/graphiql",
+				"/graphql/console",
+				"/graphql.php",
+				"/graphiql.php"
+			],
+			"headers": [
+				{
+					"Content-Type": "application/json"
+				}
+			],
+			"body": "{\"query\":\"{__schema { types { name } } }\"}"
+		},
+		"response": {
+			"statusCode": 200,
+			"detectionFingerprints": [],
+			"fingerprints": [
+				"\"__schema\"",
+				"\"name\":(.*)?\"__Directive\"",
+				"The __Directive type represents a Directive that a server supports."
+			]
+		},
+		"metadata": {
+			"service": "graphql",
+			"serviceName": "GraphQL Introspection Query Enabled",
+			"description": "The introspection query returns a GraphQL schema with all the information about the GraphQL API, including what queries it supports like schemas, mutations, fields, but also in some cases, private fields.",
+			"reproductionSteps": [
+				"Replicate the POST request",
+				"Observe the response manually and check if GraphQL returned back the entire schema with all the information. View the references for more information."
+			],
+			"references": [
+				"https://graphql.org/learn/introspection/",
+				"https://cheatsheetseries.owasp.org/cheatsheets/GraphQL_Cheat_Sheet.html#introspection-graphiql",
+				"https://www.apollographql.com/blog/graphql/security/why-you-should-disable-graphql-introspection-in-production/"
+			]
+		}
+	}
+]

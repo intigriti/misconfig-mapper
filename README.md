@@ -108,7 +108,7 @@ _auto_completion_misconfig_mapper "$@"
 **Example 1:** Perform a scan to enumerate all misconfigured third-party services
 
 ```basic
-$ ./misconfig-mapper -target "yourcompanyname" -service "*"
+$ ./misconfig-mapper -target "yourcompanyname" -service 1 -delay 1000
 ```
 
 ![Example 1](./assets/images/example_1.png "Example 1")
@@ -116,7 +116,7 @@ $ ./misconfig-mapper -target "yourcompanyname" -service "*"
 **Example 2:** Perform a detection-only scan to enumerate all third-party services (without checking for any misconfigurations)
 
 ```bash
-$ ./misconfig-mapper -target "yourcompanyname" -service "*" -skip-misconfiguration-checks true
+$ ./misconfig-mapper -target "yourcompanyname" -service 1 -skip-misconfiguration-checks true
 ```
 
 ![Example 2](./assets/images/example_2.png "Example 2")
