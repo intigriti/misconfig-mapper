@@ -306,4 +306,4 @@ Misconfig Mapper is open-source and made for the community! We encourage you to 
 
 # License
 
-This project is licensed and available under the {LICENSE} license.
+This project is licensed and available under the [MIT License](LICENSE.md).
