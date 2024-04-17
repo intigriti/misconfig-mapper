@@ -92,10 +92,10 @@ var suffixes []string = []string{
 	"org",
 	"ltd",
 	"app",
-	// Add more TLDs as needed
+	// Add more suffixes as needed
 }
 
-func LoadServices() ([]Service, error) {
+func LoadTemplates() ([]Service, error) {
 	var services []Service
 
 	file, err := os.Open("./templates/services.json")
@@ -164,11 +164,11 @@ func ReturnPossibleDomains(target string) []string {
 	return possibleDomains
 }
 
-func GetService(id string, services []Service) interface{} {
+func GetTemplate(id string, services []Service) interface{} {
 	s := []Service{}
 
 	for _, x := range services {
-		if (fmt.Sprintf("%v", x.ID) == id) || (fmt.Sprintf("%v", x.Metadata.Service) == id) {
+		if (fmt.Sprintf(`%v`, x.ID) == id) || (fmt.Sprintf(`%v`, x.Metadata.Service) == id) {
 			s = append(s, x)
 		}
 	}
@@ -212,16 +212,17 @@ func CheckResponse(result *Result, service Service, skipChecks bool, requestHead
 
 	req.WithContext(ctx)
 
-	for key, value := range requestHeaders {
-		req.Header.Set(key, value)
-	}
-
 	if len(service.Request.Headers) > 0 {
 		for _, header := range service.Request.Headers {
 			for key, value := range header {
 				req.Header.Set(key, value)
 			}
 		}
+	}
+
+	// Request headers set by CLI take preference over request headers specified in templates
+	for key, value := range requestHeaders {
+		req.Header.Set(key, value)
 	}
 
 	req.Header.Set("Connection", "close")
@@ -239,6 +240,18 @@ func CheckResponse(result *Result, service Service, skipChecks bool, requestHead
 	if res != nil {
 		defer res.Body.Close()
 
+		var statusCodeMatched bool = false
+		if res.StatusCode == int(service.Response.StatusCode) {
+			statusCodeMatched = true
+		}
+
+		var responseHeaders string = ""
+		for key, values := range res.Header {
+			for _, value := range values {
+				responseHeaders += fmt.Sprintf(`%v: %v\n`, key, value)
+			}
+		}
+
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			if verbose {
@@ -248,20 +261,15 @@ func CheckResponse(result *Result, service Service, skipChecks bool, requestHead
 			}
 		}
 
-		var statusCodeMatched bool = false
-		if res.StatusCode == int(service.Response.StatusCode) {
-			statusCodeMatched = true
-		}
-
 		if skipChecks {
 			pattern := fmt.Sprintf(`%s`, ParseRegex(service.Response.DetectionFingerprints)) // Transform array into regex pattern
-			result.Exists = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf("%s", string(body))) && statusCodeMatched
+			result.Exists = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body)))
 
 			return
 		}
 
 		pattern := fmt.Sprintf(`%s`, ParseRegex(service.Response.Fingerprints)) // Transform array into regex pattern
-		result.Vulnerable = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf("%s", string(body))) && statusCodeMatched
+		result.Vulnerable = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body))) && statusCodeMatched
 	}
 
 	return
@@ -303,7 +311,7 @@ func PrintServices(services []Service, verbose bool, width int) {
 	}
 
 	// Print the table header
-	fmt.Println("| ID | Service                               ")
+	fmt.Println("| ID | Service")
 	fmt.Printf(`|----|%v`, strings.Repeat("-", width - 6))
 
 	// Print each row of the table
@@ -338,7 +346,7 @@ func main() {
 	fd := int(os.Stdout.Fd())
 	width, _, _ := terminal.GetSize(fd)
 
-	services, err := LoadServices()
+	services, err := LoadTemplates()
 	if err != nil {
 		fmt.Println("[-] Error: Failed to load services.")
 		os.Exit(0)
@@ -362,7 +370,7 @@ func main() {
 	if service == "*" {
 		selectedServices = services
 	} else {
-		s := GetService(service, services)
+		s := GetTemplate(service, services)
 		if s == nil || len(s.([]Service)) < 1 {
 			fmt.Printf("[-] Error: Service ID \"%v\" does not match any integrated service!\n\nAvailable Services:\n", service)
 			PrintServices(services, verbose, width)
@@ -388,6 +396,7 @@ func main() {
 			break
 		default:
 			skipChecks = false
+			fmt.Printf("[-] Warning: Invalid skipChecks flag value supplied: \"%v\"\n", *skipChecksFlag)
 			break
 	}
 
@@ -404,6 +413,7 @@ func main() {
 			break
 		default:
 			permutations = false
+			fmt.Printf("[-] Warning: Invalid permutations flag value supplied: \"%v\"\n", *permutationsFlag)
 			break
     }
 
@@ -411,7 +421,7 @@ func main() {
     	// Perform permutations on target and scan all of them
 		possibleDomains = ReturnPossibleDomains(target)
     } else {
-    	// Only perfom scan on the supplied target flag value
+    	// Only perfom a scan on the supplied target flag value
 		possibleDomains = append(possibleDomains, target)
     }
 
@@ -424,11 +434,17 @@ func main() {
 				var targetURL string
 
 				limiter.Wait(context.Background())
-				
-				if permutations {
-					targetURL = strings.Replace(fmt.Sprintf("%v%v", selectedService.Request.BaseURL, path), "{TARGET}", fmt.Sprintf("%s", domain), -1)
+
+				// Make sure we only request the baseURL when we're only looking if the technology exists
+				if skipChecks {
+					path = "/"
+				}
+
+				// Crafting URL
+				if !!permutations {
+					targetURL = strings.Replace(fmt.Sprintf(`%v%v`, selectedService.Request.BaseURL, path), "{TARGET}", fmt.Sprintf(`%s`, domain), -1)
 				} else {
-					targetURL = fmt.Sprintf("%v%v", domain, path)
+					targetURL = fmt.Sprintf(`%v%v`, domain, path)
 				}
 
 				URL, err := url.Parse(targetURL)
@@ -441,10 +457,8 @@ func main() {
 					continue // Skip invalid URLs and move on to the next one
 				}
 
-				if !permutations {
-					if URL.Scheme == "" {
-						URL.Scheme = "https"
-					}
+				if !permutations && (URL.Scheme == "") {
+					URL.Scheme = "https"
 				}
 
 				result.URL = URL.String()
@@ -465,6 +479,7 @@ func main() {
 						} else {
 							fmt.Printf("[-] No vulnerable %s instance found (%s)\n", result.Service.Metadata.ServiceName, result.URL)
 						}
+
 						continue
 					}
 

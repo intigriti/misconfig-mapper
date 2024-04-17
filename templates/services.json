@@ -76,12 +76,14 @@
 		"response": {
 			"statusCode": 200,
 			"detectionFingerprints": [
-				"&quot;teamName&quot;:&quot;",
-				"data-props"
+				"src=\"https://a.slack-edge.com",
+				"<title>Slack</title>",
+				"aria-label=\"Slack homepage\""
 			],
 			"fingerprints": [
-				"&quot;teamName&quot;:&quot;",
-				"data-props"
+				"src=\"https://a.slack-edge.com",
+				"<title>Slack</title>",
+				"aria-label=\"Slack homepage\""
 			]
 		},
 		"metadata": {
@@ -108,10 +110,12 @@
 		"response": {
 			"statusCode": 200,
 			"detectionFingerprints": [
-				"Conversations"
+				"continue=https%3A%2F%2Fgroups.google.com"
 			],
 			"fingerprints": [
-				"Conversations"
+				"<base href=\"https://groups.google.com/\">",
+				"<meta name=\"(application-name|apple-mobile-web-app-title)\" content=\"Google Groups\">",
+				"<link rel=\"manifest\" crossorigin=\"use-credentials\" href=\"_/GroupsFrontendUi/manifest.json\">"
 			]
 		},
 		"metadata": {
@@ -138,13 +142,18 @@
 		"response": {
 			"statusCode": 200,
 			"detectionFingerprints": [
-				"AccessDenied",
-				"Anonymous caller does not have"
+				"<ListBucketResult",
+				"<Code>NoSuchBucket</Code>",
+				"<Code>AccessDenied</Code>",
+				"<Message>Access denied.</Message>",
+				"<Details>Anonymous caller does not have storage.objects.list access to the Google Cloud Storage bucket. Permission 'storage.objects.list' denied on resource (or it may not exist).</Details>"
 			],
 			"fingerprints": [
-				"ListBucketResult",
-				"Name",
-				"Contents"
+				"<ListBucketResult",
+				"<Code>NoSuchBucket</Code>",
+				"<Code>AccessDenied</Code>",
+				"<Message>Access denied.</Message>",
+				"<Details>Anonymous caller does not have storage.objects.list access to the Google Cloud Storage bucket. Permission 'storage.objects.list' denied on resource (or it may not exist).</Details>"
 			]
 		},
 		"metadata": {
@@ -171,12 +180,12 @@
 		"response": {
 			"statusCode": 200,
 			"detectionFingerprints": [
-				"Signup not supported [Jenkins]",
-				"This is not supported in the current configuration.",
-				"Jenkins"
+				"<title>Sign in [Jenkins]</title>",
+				"<title>Signup not supported [Jenkins]</title>"
 			],
 			"fingerprints": [
-				"Create an account!"
+				"<title>Sign up [Jenkins]</title>",
+				"If you already have a Jenkins account, "
 			]
 		},
 		"metadata": {
@@ -236,14 +245,13 @@
 		"response": {
 			"statusCode": 200,
 			"detectionFingerprints": [
-				"Explore GitLab",
-				"Discover projects, groups and snippets. Share your projects with others",
-				"No snippets found"
+				"x-gitlab-meta:"
 			],
 			"fingerprints": [
-				"Explore snippets",
-				"Created",
-				"updated"
+				"<title>Explore snippets · GitLab</title>",
+				"<meta content=\"GitLab\" property=\"og:site_name\">",
+				"Discover projects, groups and snippets. Share your projects with others",
+				"No snippets found"
 			]
 		},
 		"metadata": {
@@ -295,18 +303,17 @@
 			"method": "GET",
 			"baseURL": "https://{TARGET}",
 			"path": [
-				"/_profiles"
+				"/profiles"
 			],
 			"body": null
 		},
 		"response": {
 			"statusCode": 200,
-			"detectionFingerprints": [],
+			"detectionFingerprints": [
+				"Set-Cookie: XSRF-TOKEN=eyJpd"
+			],
 			"fingerprints": [
-				"Stack trace",
-				"Request",
-				"App",
-				"Debug"
+				"Illuminate\\Foundation\\Bootstrap\\HandleExceptions::handleError"
 			]
 		},
 		"metadata": {
@@ -332,12 +339,12 @@
 		},
 		"response": {
 			"statusCode": 200,
-			"detectionFingerprints": [],
+			"detectionFingerprints": [
+				"Set-Cookie: XSRF-TOKEN=eyJpd"
+			],
 			"fingerprints": [
-				"Laravel",
-				"Telescope",
-				"Requests",
-				"Commands"
+				"<title>Requests - Telescope</title>",
+				"Laravel Telescope"
 			]
 		},
 		"metadata": {
