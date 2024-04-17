@@ -328,7 +328,7 @@ func main() {
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookie: xyz...;;\"")
 	delayFlag := flag.Int("delay", 0, "Specify a delay between each request sent in milliseconds to enforce a rate limit.")
 	timeoutFlag := flag.Int("timeout", 7000, "Specify a timeout for each request sent in milliseconds.")
-	maxRedirectsFlag := flag.Int("max-redirects", 3, "Specify the max amount of redirects to follow.")
+	maxRedirectsFlag := flag.Int("max-redirects", 5, "Specify the max amount of redirects to follow.")
 	listServicesFlag := flag.Bool("list-services", false, "Print all services with their associated IDs")
 	verboseFlag := flag.Bool("verbose", false, "Print verbose messages")
 
