@@ -12,7 +12,7 @@
 		"response": {
 			"statusCode": 200,
 			"detectionFingerprints": [
-				"Sign up for Jira"
+				"atl-traceid:"
 			],
 			"fingerprints": [
 				"Sign up for Jira"
@@ -42,6 +42,7 @@
 		"response": {
 			"statusCode": 200,
 			"detectionFingerprints": [
+				"atl-traceid:",
 				"&quot;sdUserSignUpEnabled&quot;:true",
 				"Log in to Jira, Confluence, and all other Atlassian Cloud products here."
 			],
