@@ -26,7 +26,10 @@
 				"Visit the URL",
 				"Follow the steps in the references"
 			],
-			"references": []
+			"references": [
+				"https://bugology.intigriti.io/misconfig-mapper-docs/services/atlassian-jira/open-user-registration",
+				"https://confluence.atlassian.com/adminjiraserver072/enabling-public-signup-and-captcha-828787685.html"
+			]
 		}
 	},
 	{
@@ -60,7 +63,10 @@
 				"Follow the instructions to signup"
 			],
 			"references": [
-				"https://medium.com/@intideceukelaire/hundreds-of-internal-servicedesks-exposed-due-to-covid-19-ecd0baec87bd"
+				"https://bugology.intigriti.io/misconfig-mapper-docs/services/atlassian-jira/atlassian-jira-service-desk-open-signups",
+				"https://medium.com/@intideceukelaire/hundreds-of-internal-servicedesks-exposed-due-to-covid-19-ecd0baec87bd",
+				"https://medium.com/@intideceukelaire/hundreds-of-internal-servicedesks-exposed-due-to-covid-19-ecd0baec87bdhttps://support.atlassian.com/jira-service-management-cloud/docs/customer-permissions-for-your-service-project-and-jira-site/",
+				"https://support.atlassian.com/user-management/docs/control-how-users-get-access-to-products/"
 			]
 		}
 	},
@@ -95,7 +101,11 @@
 				"Visit the URL",
 				"Follow the steps in the references"
 			],
-			"references": []
+			"references": [
+				"https://bugology.intigriti.io/misconfig-mapper-docs/services/slack/no-admin-approval-for-invitations",
+				"https://slack.com/help/articles/115004854783-Require-admin-approval-for-workspace-invitations",
+				"https://slack.com/help/articles/115004155306-Security-tips-to-protect-your-workspace"
+			]
 		}
 	},
 	{
@@ -127,7 +137,10 @@
 				"Visit the URL",
 				"Follow the steps in the references"
 			],
-			"references": []
+			"references": [
+				"https://bugology.intigriti.io/misconfig-mapper-docs/services/google-groups/google-groups",
+				"https://workspaceupdates.googleblog.com/2018/06/configure-your-google-groups-settings.html"
+			]
 		}
 	},
 	{
@@ -165,7 +178,11 @@
 				"Visit the URL",
 				"Observe the response for any disclosed information (like private files). View the references for more information."
 			],
-			"references": []
+			"references": [
+				"https://bugology.intigriti.io/misconfig-mapper-docs/services/google-cloud-storage-bucket/google-cloud-storage-bucket",
+				"https://cloud.google.com/storage/docs/access-control/making-data-public#buckets",
+				"https://cloud.google.com/storage/docs/public-access-prevention"
+			]
 		}
 	},
 	{
@@ -197,7 +214,10 @@
 				"Visit the URL",
 				"Observe the response and follow the steps to create an account. View the references for more information."
 			],
-			"references": []
+			"references": [
+				"https://bugology.intigriti.io/misconfig-mapper-docs/services/jenkins/open-signups",
+				"https://rohit-soni.medium.com/chaining-multiple-vulnerabilities-leads-to-remote-code-execution-rce-on-paytm-e77f2fd2295e"
+			]
 		}
 	},
 	{
@@ -230,7 +250,12 @@
 				"Visit the URL",
 				"Observe the response and follow the steps to check for code execution. View the references for more information."
 			],
-			"references": []
+			"references": [
+				"https://bugology.intigriti.io/misconfig-mapper-docs/services/jenkins/public-groovy-script-console",
+				"https://www.jenkins.io/doc/book/managing/script-console/",
+				"https://www.jenkins.io/doc/book/security/access-control/permissions/",
+				"https://rohit-soni.medium.com/chaining-multiple-vulnerabilities-leads-to-remote-code-execution-rce-on-paytm-e77f2fd2295e"
+			]
 		}
 	},
 	{
@@ -263,7 +288,10 @@
 				"Visit the URL",
 				"Observe the response and follow the steps to check public snippets. View the references for more information."
 			],
-			"references": []
+			"references": [
+				"https://bugology.intigriti.io/misconfig-mapper-docs/services/gitlab/gitlab-private-source-code-snippets-exposed",
+				"https://docs.gitlab.com/ee/user/snippets.html"
+			]
 		}
 	},
 	{
@@ -295,7 +323,12 @@
 				"Visit the URL",
 				"Observe the response and follow the steps to check public snippets. View the references for more information."
 			],
-			"references": []
+			"references": [
+				"https://bugology.intigriti.io/misconfig-mapper-docs/services/drupal/drupal-nodes-with-misconfigured-access-controls",
+				"https://twitter.com/adrien_jeanneau/status/1273952564430725123",
+				"https://www.drupal.org/docs/core-modules-and-themes/core-modules/node-module/about-nodes",
+				"https://web.archive.org/web/20220203132234/https://0xblackbird.github.io/blog/post1"
+			]
 		}
 	},
 	{
@@ -325,7 +358,10 @@
 				"Visit the URL",
 				"Observe the response manually and check if debug mode is enabled on your target's Laravel application. View the references for more information."
 			],
-			"references": []
+			"references": [
+				"https://bugology.intigriti.io/misconfig-mapper-docs/services/laravel/debug-mode-enabled",
+				"https://laravel.com/docs/10.x/deployment#debug-mode"
+			]
 		}
 	},
 	{
@@ -356,7 +392,10 @@
 				"Visit the URL",
 				"Observe the response manually and check if Telescope is installed and used in your target's Laravel application. View the references for more information."
 			],
-			"references": []
+			"references": [
+				"https://bugology.intigriti.io/misconfig-mapper-docs/services/laravel/laravel-telescope-enabled-in-production",
+				"https://laravel.com/docs/10.x/telescope"
+			]
 		}
 	},
 	{
@@ -401,6 +440,7 @@
 				"Observe the response manually and check if GraphQL returned back the entire schema with all the information. View the references for more information."
 			],
 			"references": [
+				"https://bugology.intigriti.io/misconfig-mapper-docs/services/graphql/graphql-introspection-query-enabled",
 				"https://graphql.org/learn/introspection/",
 				"https://cheatsheetseries.owasp.org/cheatsheets/GraphQL_Cheat_Sheet.html#introspection-graphiql",
 				"https://www.apollographql.com/blog/graphql/security/why-you-should-disable-graphql-introspection-in-production/"
