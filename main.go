@@ -7,6 +7,7 @@ import (
 	"flag"
 	"time"
 	"bytes"
+	"bufio"
 	"regexp"
 	"context"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	"net/http"
 	"io/ioutil"
 	"crypto/tls"
+	"path/filepath"
 	"encoding/json"
 	"golang.org/x/time/rate"
 	"golang.org/x/crypto/ssh/terminal"
@@ -50,6 +52,14 @@ type Result struct {
 	Vulnerable					bool		// Used to report back in case the instance is vulnerable
 	ServiceId					string		// Service ID
 	Service						Service		// Service struct
+}
+
+type RequestContext struct {
+	SkipChecks					bool
+	Headers						map[string]string
+	Timeout						int
+	MaxRedirects				int
+	Verbose						bool
 }
 
 /* TYPES/ */
@@ -180,19 +190,19 @@ func GetTemplate(id string, services []Service) interface{} {
 	return nil
 }
 
-func CheckResponse(result *Result, service Service, skipChecks bool, requestHeaders map[string]string, timeout int, maxRedirects int, verbose bool) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout) * time.Millisecond)
+func CheckResponse(result *Result, service *Service, r *RequestContext) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.Timeout) * time.Millisecond)
 	defer cancel()
 
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			// Follow max amount of specified redirects
-			if len(via) >= maxRedirects {
+			if len(via) >= r.MaxRedirects {
 				return fmt.Errorf("[-] Error: Too many redirects encountered for %v\n", result.URL)
 			}
 			return nil
 		},
-		Timeout: time.Duration(timeout) * time.Millisecond,
+		Timeout: time.Duration(r.Timeout) * time.Millisecond,
 	}
 
 	var requestBody io.Reader = nil
@@ -202,7 +212,7 @@ func CheckResponse(result *Result, service Service, skipChecks bool, requestHead
 
 	req, err := http.NewRequest(fmt.Sprintf(`%v`, service.Request.Method), result.URL, requestBody)
 	if err != nil {
-		if verbose {
+		if r.Verbose {
 			fmt.Printf("[-] Error: Failed to request %s (%v)\n", result.URL, err)
 		} else {
 			fmt.Printf("[-] Error: Failed to request %s\n", result.URL)
@@ -221,7 +231,7 @@ func CheckResponse(result *Result, service Service, skipChecks bool, requestHead
 	}
 
 	// Request headers set by CLI take preference over request headers specified in templates
-	for key, value := range requestHeaders {
+	for key, value := range r.Headers {
 		req.Header.Set(key, value)
 	}
 
@@ -229,7 +239,7 @@ func CheckResponse(result *Result, service Service, skipChecks bool, requestHead
 
 	res, err := client.Do(req)
 	if err != nil {
-		if verbose {
+		if r.Verbose {
 			fmt.Printf("[-] Error: Failed to read response for %s (%v)\n", result.URL, err)
 		} else {
 			fmt.Printf("[-] Error: Failed to read response for %s\n", result.URL)
@@ -254,14 +264,14 @@ func CheckResponse(result *Result, service Service, skipChecks bool, requestHead
 
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			if verbose {
+			if r.Verbose {
 				fmt.Printf("[-] Error: Failed to read response body for %s (%v)\n", result.URL, err)
 			} else {
 				fmt.Printf("[-] Error: Failed to read response body for %s\n", result.URL)
 			}
 		}
 
-		if skipChecks {
+		if r.SkipChecks {
 			pattern := fmt.Sprintf(`%s`, ParseRegex(service.Response.DetectionFingerprints)) // Transform array into regex pattern
 			result.Exists = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body)))
 
@@ -275,10 +285,10 @@ func CheckResponse(result *Result, service Service, skipChecks bool, requestHead
 	return
 }
 
-func PrintResult(result Result, skipChecks bool, width int) {
+func HandleResult(result *Result, reqCTX *RequestContext, width int) {
 	fmt.Println(strings.Repeat("-", width))
 
-	if skipChecks {
+	if reqCTX.SkipChecks {
 		fmt.Printf("[+] 1 %s Instance found!\n", result.Service.Metadata.ServiceName)
 	} else {
 		fmt.Println("[+] 1 Vulnerable result found!")
@@ -288,10 +298,12 @@ func PrintResult(result Result, skipChecks bool, width int) {
 	fmt.Printf("Service: %s\n", result.Service.Metadata.ServiceName)
 	fmt.Printf("Description: %s\n", result.Service.Metadata.Description)
 
-	if len(result.Service.Metadata.ReproductionSteps) > 0 {
-		fmt.Println("\nReproduction Steps:")
-		for _, step := range result.Service.Metadata.ReproductionSteps {
-			fmt.Printf("\t- %s\n", step)
+	if !reqCTX.SkipChecks {
+		if len(result.Service.Metadata.ReproductionSteps) > 0 {
+			fmt.Println("\nReproduction Steps:")
+			for _, step := range result.Service.Metadata.ReproductionSteps {
+				fmt.Printf("\t- %s\n", step)
+			}
 		}
 	}
 
@@ -320,8 +332,41 @@ func PrintServices(services []Service, verbose bool, width int) {
 	}
 }
 
+func IsFile(path string) bool {
+	if filepath.Ext(path) == "" {
+		return false
+	}
+
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
+func ProcessInput(fileName string, input *[]string) {
+	file, err := os.Open(fmt.Sprintf(`%v`, fileName))
+	if err != nil {
+		fmt.Printf("[-] Error: Failed to open file! (%v)", err)
+		return
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		*input = append(*input, fmt.Sprintf(`%v`, scanner.Text()))
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Printf("[-] Error: Failed to read file! (%v)", err)
+		return
+	}
+}
+
 func main() {
-	targetFlag := flag.String("target", "", "Specify your target domain name or company/organization name: \"intigriti.com\" or \"intigriti\"")
+	targetFlag := flag.String("target", "", "Specify your target domain name or company/organization name: \"intigriti.com\" or \"intigriti\" (files are also accepted)")
 	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services.")
 	skipChecksFlag := flag.String("skip-misconfiguration-checks", "", "Only check for existing instances (and skip checks for potential security misconfigurations).")
 	permutationsFlag := flag.String("permutations", "true", "Enable permutations and look for several other keywords of your target.")
@@ -336,11 +381,15 @@ func main() {
 
 	var target string = *targetFlag
 	var service string = *serviceFlag
-	var requestHeaders map[string]string = ParseRequestHeaders(*requestHeadersFlag)
 	var delay int = *delayFlag
-	var timeout int = *timeoutFlag
-	var maxRedirects int = *maxRedirectsFlag
-	var verbose bool = *verboseFlag
+
+	var reqCTX RequestContext = RequestContext{
+		SkipChecks:			false,
+		Headers:			ParseRequestHeaders(*requestHeadersFlag),
+		Timeout:			*timeoutFlag,
+		MaxRedirects:		*maxRedirectsFlag,
+		Verbose:			*verboseFlag,
+	}
 
 	// Derrive terminal width
 	fd := int(os.Stdout.Fd())
@@ -353,7 +402,7 @@ func main() {
 	}
 
 	if *listServicesFlag {
-		PrintServices(services, verbose, width)
+		PrintServices(services, reqCTX.Verbose, width)
 		return
 	}
 
@@ -373,11 +422,11 @@ func main() {
 		s := GetTemplate(service, services)
 		if s == nil || len(s.([]Service)) < 1 {
 			fmt.Printf("[-] Error: Service ID \"%v\" does not match any integrated service!\n\nAvailable Services:\n", service)
-			PrintServices(services, verbose, width)
+			PrintServices(services, reqCTX.Verbose, width)
 			return
 		}
 
-		if verbose {
+		if reqCTX.Verbose {
 			fmt.Printf("[+] %v Services selected!\n", len(s.([]Service)))
 		}
 	
@@ -385,17 +434,15 @@ func main() {
 	}
 
 	// Parse "skip-misconfiguration-checks" CLI flag
-	var skipChecks bool = false
-
 	switch strings.ToLower(*skipChecksFlag) {
 		case "", "y", "yes", "true", "on", "1", "enable":
-			skipChecks = true
+			reqCTX.SkipChecks = true
 			break
 		case "n", "no", "false", "off", "0", "disable":
-			skipChecks = false
+			reqCTX.SkipChecks = false
 			break
 		default:
-			skipChecks = false
+			reqCTX.SkipChecks = false
 			fmt.Printf("[-] Warning: Invalid skipChecks flag value supplied: \"%v\"\n", *skipChecksFlag)
 			break
 	}
@@ -415,15 +462,32 @@ func main() {
 			permutations = false
 			fmt.Printf("[-] Warning: Invalid permutations flag value supplied: \"%v\"\n", *permutationsFlag)
 			break
-    }
+	}
 
-    if permutations {
-    	// Perform permutations on target and scan all of them
-		possibleDomains = ReturnPossibleDomains(target)
-    } else {
-    	// Only perfom a scan on the supplied target flag value
-		possibleDomains = append(possibleDomains, target)
-    }
+	if IsFile(target) {
+		// Load all lines and loop over file
+		var targets []string = []string{}
+		ProcessInput(target, &targets)
+
+		if permutations {
+			for _, e := range targets {
+				possibleDomains = append(possibleDomains, ReturnPossibleDomains(e)...)
+			}
+		} else {
+			for _, e := range targets {
+				possibleDomains = append(possibleDomains, e)
+			}
+		}
+	} else {
+		// Treat target as a domain
+		if permutations {
+			// Perform permutations on target and scan all of them
+			possibleDomains = ReturnPossibleDomains(target)
+		} else {
+			// Only perfom a scan on the supplied target flag value
+			possibleDomains = append(possibleDomains, target)
+		}
+	}
 
 	fmt.Printf("[+] Checking %v possible target URLs...\n", len(possibleDomains))
 
@@ -436,7 +500,7 @@ func main() {
 				limiter.Wait(context.Background())
 
 				// Make sure we only request the baseURL when we're only looking if the technology exists
-				if skipChecks {
+				if reqCTX.SkipChecks {
 					path = "/"
 				}
 
@@ -449,7 +513,7 @@ func main() {
 
 				URL, err := url.Parse(targetURL)
 				if err != nil {
-					if verbose {
+					if reqCTX.Verbose {
 						fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping... (%v)\n", targetURL, err)
 					} else {
 						fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping...\n", targetURL)
@@ -467,14 +531,14 @@ func main() {
 				result.Exists = false // Default value
 				result.Vulnerable = false // Default value
 
-				CheckResponse(&result, selectedService, skipChecks, requestHeaders, timeout, maxRedirects, verbose)
+				CheckResponse(&result, &selectedService, &reqCTX)
 
 				if result.Exists || result.Vulnerable {
-					PrintResult(result, skipChecks, width)
+					HandleResult(&result, &reqCTX, width)
 					break
 				} else {
 					if !result.Exists {
-						if skipChecks {
+						if reqCTX.SkipChecks {
 							fmt.Printf("[-] No %s instance found (%s)\n", result.Service.Metadata.ServiceName, result.URL)
 						} else {
 							fmt.Printf("[-] No vulnerable %s instance found (%s)\n", result.Service.Metadata.ServiceName, result.URL)
