@@ -164,7 +164,7 @@ Usage of ./misconfig-mapper:
   -skip-misconfiguration-checks string
     	Only check for existing instances (and skip checks for potential security misconfigurations).
   -target string
-    	Specify your target domain name or company/organization name: "intigriti.com" or "intigriti"
+    	Specify your target domain name or company/organization name: "intigriti.com" or "intigriti" (files are also accepted)
   -timeout int
     	Specify a timeout for each request sent in milliseconds. (default 7000)
   -verbose
