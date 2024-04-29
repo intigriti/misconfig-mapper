@@ -9,7 +9,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -18,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 	"golang.org/x/time/rate"
 )
 
@@ -91,7 +90,6 @@ type RequestContext struct {
 	]
 */
 
-var services []Service
 var selectedServices []Service
 
 var suffixes []string = []string{
@@ -150,7 +148,6 @@ func ParseRequestHeaders(rawHeaders string) map[string]string {
 func ParseRegex(v []string) string {
 	x := strings.Join(v, `|`)             // Split array entries with regex alternation
 	x = strings.Replace(x, ".", `\.`, -1) // Escape dot characters
-	x = fmt.Sprintf(`%s`, x)
 
 	return x
 }
@@ -199,7 +196,7 @@ func CheckResponse(result *Result, service *Service, r *RequestContext) {
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			// Follow max amount of specified redirects
 			if len(via) >= r.MaxRedirects {
-				return fmt.Errorf("[-] Error: Too many redirects encountered for %v\n", result.URL)
+				return fmt.Errorf("[-] Error: Too many redirects encountered for %v", result.URL)
 			}
 			return nil
 		},
@@ -211,7 +208,7 @@ func CheckResponse(result *Result, service *Service, r *RequestContext) {
 		requestBody = bytes.NewBuffer([]byte(fmt.Sprintf(`%v`, service.Request.Body)))
 	}
 
-	req, err := http.NewRequest(fmt.Sprintf(`%v`, service.Request.Method), result.URL, requestBody)
+	req, err := http.NewRequestWithContext(ctx, fmt.Sprintf(`%v`, service.Request.Method), result.URL, requestBody)
 	if err != nil {
 		if r.Verbose {
 			fmt.Printf("[-] Error: Failed to request %s (%v)\n", result.URL, err)
@@ -220,8 +217,6 @@ func CheckResponse(result *Result, service *Service, r *RequestContext) {
 		}
 		result.Vulnerable = false
 	}
-
-	req.WithContext(ctx)
 
 	if len(service.Request.Headers) > 0 {
 		for _, header := range service.Request.Headers {
@@ -263,7 +258,7 @@ func CheckResponse(result *Result, service *Service, r *RequestContext) {
 			}
 		}
 
-		body, err := ioutil.ReadAll(res.Body)
+		body, err := io.ReadAll(res.Body)
 		if err != nil {
 			if r.Verbose {
 				fmt.Printf("[-] Error: Failed to read response body for %s (%v)\n", result.URL, err)
@@ -273,17 +268,15 @@ func CheckResponse(result *Result, service *Service, r *RequestContext) {
 		}
 
 		if r.SkipChecks {
-			pattern := fmt.Sprintf(`%s`, ParseRegex(service.Response.DetectionFingerprints)) // Transform array into regex pattern
-			result.Exists = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body)))
+			pattern := ParseRegex(service.Response.DetectionFingerprints) // Transform array into regex pattern
+			result.Exists = (regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body))))
 
 			return
 		}
 
-		pattern := fmt.Sprintf(`%s`, ParseRegex(service.Response.Fingerprints)) // Transform array into regex pattern
-		result.Vulnerable = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body))) && statusCodeMatched
+		pattern := ParseRegex(service.Response.Fingerprints) // Transform array into regex pattern
+		result.Vulnerable = regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body))) && statusCodeMatched
 	}
-
-	return
 }
 
 func HandleResult(result *Result, reqCTX *RequestContext, width int) {
@@ -339,11 +332,7 @@ func IsFile(path string) bool {
 	}
 
 	_, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false
-	}
-
-	return true
+	return !os.IsNotExist(err)
 }
 
 func ProcessInput(fileName string, input *[]string) {
@@ -394,7 +383,7 @@ func main() {
 
 	// Derrive terminal width
 	fd := int(os.Stdout.Fd())
-	width, _, _ := terminal.GetSize(fd)
+	width, _, _ := term.GetSize(fd)
 
 	services, err := LoadTemplates()
 	if err != nil {
@@ -438,14 +427,11 @@ func main() {
 	switch strings.ToLower(*skipChecksFlag) {
 	case "", "y", "yes", "true", "on", "1", "enable":
 		reqCTX.SkipChecks = true
-		break
 	case "n", "no", "false", "off", "0", "disable":
 		reqCTX.SkipChecks = false
-		break
 	default:
 		reqCTX.SkipChecks = false
 		fmt.Printf("[-] Warning: Invalid skipChecks flag value supplied: \"%v\"\n", *skipChecksFlag)
-		break
 	}
 
 	// Parse "permutations" CLI flag
@@ -455,14 +441,11 @@ func main() {
 	switch strings.ToLower(*permutationsFlag) {
 	case "", "y", "yes", "true", "on", "1", "enable":
 		permutations = true
-		break
 	case "n", "no", "false", "off", "0", "disable":
 		permutations = false
-		break
 	default:
 		permutations = false
 		fmt.Printf("[-] Warning: Invalid permutations flag value supplied: \"%v\"\n", *permutationsFlag)
-		break
 	}
 
 	if IsFile(target) {
@@ -475,9 +458,7 @@ func main() {
 				possibleDomains = append(possibleDomains, ReturnPossibleDomains(e)...)
 			}
 		} else {
-			for _, e := range targets {
-				possibleDomains = append(possibleDomains, e)
-			}
+			possibleDomains = append(possibleDomains, targets...)
 		}
 	} else {
 		// Treat target as a domain
@@ -506,8 +487,8 @@ func main() {
 				}
 
 				// Crafting URL
-				if !!permutations {
-					targetURL = strings.Replace(fmt.Sprintf(`%v%v`, selectedService.Request.BaseURL, path), "{TARGET}", fmt.Sprintf(`%s`, domain), -1)
+				if permutations {
+					targetURL = strings.Replace(fmt.Sprintf(`%v%v`, selectedService.Request.BaseURL, path), "{TARGET}", domain, -1)
 				} else {
 					targetURL = fmt.Sprintf(`%v%v`, domain, path)
 				}

@@ -1,5 +1,11 @@
+# vscode
+/\~
+~/.vscode-root
+.vscode
+
 # Binary
 misconfig-mapper
+main
 
-# Release files
-releases
+# Release folder
+release
