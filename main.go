@@ -9,7 +9,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -91,10 +90,9 @@ type RequestContext struct {
 	]
 */
 
-var services []Service
 var selectedServices []Service
 
-var suffixes []string = []string{
+var suffixes = []string{
 	"com",
 	"net",
 	"org",
@@ -106,7 +104,7 @@ var suffixes []string = []string{
 	// Add more suffixes as needed
 }
 
-func LoadTemplates() ([]Service, error) {
+func loadTemplates() ([]Service, error) {
 	var services []Service
 
 	file, err := os.Open("./templates/services.json")
@@ -125,7 +123,7 @@ func LoadTemplates() ([]Service, error) {
 	return services, nil
 }
 
-func ParseRequestHeaders(rawHeaders string) map[string]string {
+func parseRequestHeaders(rawHeaders string) map[string]string {
 	requestHeaders := make(map[string]string)
 
 	headers := strings.Split(rawHeaders, ";;")
@@ -147,7 +145,7 @@ func ParseRequestHeaders(rawHeaders string) map[string]string {
 	return requestHeaders
 }
 
-func ParseRegex(v []string) string {
+func parseRegex(v []string) string {
 	x := strings.Join(v, `|`)             // Split array entries with regex alternation
 	x = strings.Replace(x, ".", `\.`, -1) // Escape dot characters
 	x = fmt.Sprintf(`%s`, x)
@@ -155,7 +153,7 @@ func ParseRegex(v []string) string {
 	return x
 }
 
-func ReturnPossibleDomains(target string) []string {
+func returnPossibleDomains(target string) []string {
 	var possibleDomains []string
 
 	// By default, always add target name
@@ -175,8 +173,8 @@ func ReturnPossibleDomains(target string) []string {
 	return possibleDomains
 }
 
-func GetTemplate(id string, services []Service) interface{} {
-	s := []Service{}
+func getTemplate(id string, services []Service) interface{} {
+	var s []Service
 
 	for _, x := range services {
 		if (fmt.Sprintf(`%v`, x.ID) == id) || (fmt.Sprintf(`%v`, x.Metadata.Service) == id) {
@@ -191,7 +189,7 @@ func GetTemplate(id string, services []Service) interface{} {
 	return nil
 }
 
-func CheckResponse(result *Result, service *Service, r *RequestContext) {
+func checkResponse(result *Result, service *Service, r *RequestContext) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.Timeout)*time.Millisecond)
 	defer cancel()
 
@@ -221,7 +219,12 @@ func CheckResponse(result *Result, service *Service, r *RequestContext) {
 		result.Vulnerable = false
 	}
 
-	req.WithContext(ctx)
+	if req == nil {
+		fmt.Printf("[-] Error: HTTP Request is empty")
+		return
+	}
+
+	req = req.WithContext(ctx)
 
 	if len(service.Request.Headers) > 0 {
 		for _, header := range service.Request.Headers {
@@ -263,7 +266,7 @@ func CheckResponse(result *Result, service *Service, r *RequestContext) {
 			}
 		}
 
-		body, err := ioutil.ReadAll(res.Body)
+		body, err := io.ReadAll(res.Body)
 		if err != nil {
 			if r.Verbose {
 				fmt.Printf("[-] Error: Failed to read response body for %s (%v)\n", result.URL, err)
@@ -273,20 +276,20 @@ func CheckResponse(result *Result, service *Service, r *RequestContext) {
 		}
 
 		if r.SkipChecks {
-			pattern := fmt.Sprintf(`%s`, ParseRegex(service.Response.DetectionFingerprints)) // Transform array into regex pattern
+			pattern := fmt.Sprintf(`%s`, parseRegex(service.Response.DetectionFingerprints)) // Transform array into regex pattern
 			result.Exists = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body)))
 
 			return
 		}
 
-		pattern := fmt.Sprintf(`%s`, ParseRegex(service.Response.Fingerprints)) // Transform array into regex pattern
+		pattern := fmt.Sprintf(`%s`, parseRegex(service.Response.Fingerprints)) // Transform array into regex pattern
 		result.Vulnerable = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body))) && statusCodeMatched
 	}
 
 	return
 }
 
-func HandleResult(result *Result, reqCTX *RequestContext, width int) {
+func handleResult(result *Result, reqCTX *RequestContext, width int) {
 	fmt.Println(strings.Repeat("-", width))
 
 	if reqCTX.SkipChecks {
@@ -318,7 +321,7 @@ func HandleResult(result *Result, reqCTX *RequestContext, width int) {
 	fmt.Println(strings.Repeat("-", width))
 }
 
-func PrintServices(services []Service, verbose bool, width int) {
+func printServices(services []Service, verbose bool, width int) {
 	if verbose {
 		fmt.Printf("[+] %v Service(s) loaded!\n", len(services))
 	}
@@ -333,7 +336,7 @@ func PrintServices(services []Service, verbose bool, width int) {
 	}
 }
 
-func IsFile(path string) bool {
+func isFile(path string) bool {
 	if filepath.Ext(path) == "" {
 		return false
 	}
@@ -346,7 +349,7 @@ func IsFile(path string) bool {
 	return true
 }
 
-func ProcessInput(fileName string, input *[]string) {
+func processInput(fileName string, input *[]string) {
 	file, err := os.Open(fmt.Sprintf(`%v`, fileName))
 	if err != nil {
 		fmt.Printf("[-] Error: Failed to open file! (%v)", err)
@@ -386,7 +389,7 @@ func main() {
 
 	var reqCTX RequestContext = RequestContext{
 		SkipChecks:   false,
-		Headers:      ParseRequestHeaders(*requestHeadersFlag),
+		Headers:      parseRequestHeaders(*requestHeadersFlag),
 		Timeout:      *timeoutFlag,
 		MaxRedirects: *maxRedirectsFlag,
 		Verbose:      *verboseFlag,
@@ -396,14 +399,14 @@ func main() {
 	fd := int(os.Stdout.Fd())
 	width, _, _ := terminal.GetSize(fd)
 
-	services, err := LoadTemplates()
+	services, err := loadTemplates()
 	if err != nil {
 		fmt.Println("[-] Error: Failed to load services.")
 		os.Exit(0)
 	}
 
 	if *listServicesFlag {
-		PrintServices(services, reqCTX.Verbose, width)
+		printServices(services, reqCTX.Verbose, width)
 		return
 	}
 
@@ -420,10 +423,10 @@ func main() {
 	if service == "*" {
 		selectedServices = services
 	} else {
-		s := GetTemplate(service, services)
+		s := getTemplate(service, services)
 		if s == nil || len(s.([]Service)) < 1 {
 			fmt.Printf("[-] Error: Service ID \"%v\" does not match any integrated service!\n\nAvailable Services:\n", service)
-			PrintServices(services, reqCTX.Verbose, width)
+			printServices(services, reqCTX.Verbose, width)
 			return
 		}
 
@@ -465,14 +468,14 @@ func main() {
 		break
 	}
 
-	if IsFile(target) {
+	if isFile(target) {
 		// Load all lines and loop over file
 		var targets []string = []string{}
-		ProcessInput(target, &targets)
+		processInput(target, &targets)
 
 		if permutations {
 			for _, e := range targets {
-				possibleDomains = append(possibleDomains, ReturnPossibleDomains(e)...)
+				possibleDomains = append(possibleDomains, returnPossibleDomains(e)...)
 			}
 		} else {
 			for _, e := range targets {
@@ -483,7 +486,7 @@ func main() {
 		// Treat target as a domain
 		if permutations {
 			// Perform permutations on target and scan all of them
-			possibleDomains = ReturnPossibleDomains(target)
+			possibleDomains = returnPossibleDomains(target)
 		} else {
 			// Only perfom a scan on the supplied target flag value
 			possibleDomains = append(possibleDomains, target)
@@ -532,10 +535,10 @@ func main() {
 				result.Exists = false     // Default value
 				result.Vulnerable = false // Default value
 
-				CheckResponse(&result, &selectedService, &reqCTX)
+				checkResponse(&result, &selectedService, &reqCTX)
 
 				if result.Exists || result.Vulnerable {
-					HandleResult(&result, &reqCTX, width)
+					handleResult(&result, &reqCTX, width)
 					break
 				} else {
 					if !result.Exists {
