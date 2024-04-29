@@ -2,7 +2,7 @@
 
 Misconfig Mapper is a project by Intigriti for the community to help you find, detect and resolve common security misconfigurations in various popular services, technologies and SaaS-based solutions that your targets use!
 
-![image](./assets/images/logo.png)
+![image](.github/assets/images/logo.png)
 
 # CLI Tool
 
@@ -114,7 +114,7 @@ _auto_completion_misconfig_mapper "$@"
 $ ./misconfig-mapper -target "yourcompanyname" -service 1 -delay 1000
 ```
 
-![Example 1](./assets/images/example_1.png "Example 1")
+![Example 1](.github/assets/images/example_1.png "Example 1")
 
 **Example 2:** Perform a detection-only scan to enumerate all third-party services (without checking for any misconfigurations)
 
@@ -122,7 +122,7 @@ $ ./misconfig-mapper -target "yourcompanyname" -service 1 -delay 1000
 $ ./misconfig-mapper -target "yourcompanyname" -service 1 -skip-misconfiguration-checks true
 ```
 
-![Example 2](./assets/images/example_2.png "Example 2")
+![Example 2](.github/assets/images/example_2.png "Example 2")
 
 **Example 3:** Only test for one specific service (by ID or name)
 
@@ -134,7 +134,7 @@ $ ./misconfig-mapper -target "yourcompanyname" -service 1
 $ ./misconfig-mapper -target "yourcompanyname" -service "drupal"
 ```
 
-![Example 3](./assets/images/example_3.png "Example 3")
+![Example 3](.github/assets/images/example_3.png "Example 3")
 
 **Example 4:** Print out all loaded services
 
@@ -142,7 +142,7 @@ $ ./misconfig-mapper -target "yourcompanyname" -service "drupal"
 $ ./misconfig-mapper -list-services
 ```
 
-![Example 4](./assets/images/example_4.png "Example 4")
+![Example 4](.github/assets/images/example_4.png "Example 4")
 
 Additionally, you can pass request headers using the `-headers` flag to comply with any request requirements (separate each header using a **double semi-colon**):
 
@@ -180,7 +180,7 @@ You can easily define more templates to scan for. Templates are in a structured 
 \
 To define more services, edit the services.json file and separate each misconfiguration in your `services.json` file.
 
-An example template definition schema is available [here](./assets/template-schema.json).
+An example template definition schema is available [here](.github/assets/template-schema.json).
 
 ## Template Type Definitions
 

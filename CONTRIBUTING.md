@@ -6,7 +6,7 @@ This guideline contains several steps to help you contribute to [Misconfig Mappe
 
 Want to help add coverage for a new service or improve an existing one? Please create a pull request with the new template added to the `services.json` template file.
 
-The latest type definitions and template schema can be found [here](/assets/template-schema.json).
+The latest type definitions and template schema can be found [here](/.github/assets/template-schema.json).
 
 > [!IMPORTANT]
 > Please make sure to search if the template or service you're about to add has not been added yet.

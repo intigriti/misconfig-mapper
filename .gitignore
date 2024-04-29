@@ -2,11 +2,8 @@
 /\~
 ~/.vscode-root
 .vscode
+.idea/
 
 # Binary
 misconfig-mapper
 main
-
-# Release folder
-release
-release.zip

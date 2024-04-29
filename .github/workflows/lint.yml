@@ -1,0 +1,17 @@
+name: lint
+
+on: pull_request
+
+jobs:
+  golangci:
+    name: go
+    runs-on: ubuntu-latest
+    steps:
+    -
+      uses: actions/checkout@v4
+    -
+      name: golangci-lint
+      uses: reviewdog/action-golangci-lint@master
+      with:
+        github_token: ${{ secrets.github_token }}
+        golangci_lint_flags: "--config=.github/golangci.yml"

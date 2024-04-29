@@ -1,0 +1,39 @@
+before:
+  hooks:
+  - go mod download
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore'
+
+release:
+  disable: false
+
+sboms:
+  -
+    artifacts: archive
+
+builds:
+  -
+    id: cli
+    dir: .
+    env: [CGO_ENABLED=0]
+    ldflags: [-w -s -extldflags "-static"]
+    goos: [darwin, linux, windows]
+    goarch: [amd64, arm64]
+    binary: misconfig-mapper
+
+archives:
+  -
+    name_template: "misconfig-mapper_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format: zip
