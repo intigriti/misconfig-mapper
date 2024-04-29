@@ -1,0 +1,15 @@
+# vscode
+/\~
+~/.vscode-root
+.vscode
+.idea/
+
+# Binary
+misconfig-mapper
+main
+
+# others
+.DS_Store
+dist/
+.semrel
+.generated-go-semantic-release-changelog.md

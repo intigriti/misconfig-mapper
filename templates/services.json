@@ -1,0 +1,413 @@
+[
+    {
+        "id": 0,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://{TARGET}.atlassian.net",
+            "path": ["/secure/Signup!default.jspa"],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": ["atl-traceid:"],
+            "fingerprints": ["Sign up for Jira"]
+        },
+        "metadata": {
+            "service": "atlassian",
+            "serviceName": "Atlassian Jira Open Signups",
+            "description": "Atlassian Jira Open Signups",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Follow the steps in the references"
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/atlassian-jira/open-user-registration",
+                "https://confluence.atlassian.com/adminjiraserver072/enabling-public-signup-and-captcha-828787685.html"
+            ]
+        }
+    },
+    {
+        "id": 1,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://{TARGET}.atlassian.net",
+            "path": ["/servicedesk/customer/user/login"],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": [
+                "atl-traceid:",
+                "&quot;sdUserSignUpEnabled&quot;:true",
+                "Log in to Jira, Confluence, and all other Atlassian Cloud products here."
+            ],
+            "fingerprints": [
+                "&quot;sdUserSignUpEnabled&quot;:true",
+                "Log in to Jira, Confluence, and all other Atlassian Cloud products here."
+            ]
+        },
+        "metadata": {
+            "service": "atlassian",
+            "serviceName": "Atlassian Jira Service Desk",
+            "description": "Atlassian Jira Service Desk Open Signups",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Follow the instructions to signup"
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/atlassian-jira/atlassian-jira-service-desk-open-signups",
+                "https://medium.com/@intideceukelaire/hundreds-of-internal-servicedesks-exposed-due-to-covid-19-ecd0baec87bd",
+                "https://medium.com/@intideceukelaire/hundreds-of-internal-servicedesks-exposed-due-to-covid-19-ecd0baec87bdhttps://support.atlassian.com/jira-service-management-cloud/docs/customer-permissions-for-your-service-project-and-jira-site/",
+                "https://support.atlassian.com/user-management/docs/control-how-users-get-access-to-products/"
+            ]
+        }
+    },
+    {
+        "id": 2,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://{TARGET}.slack.com",
+            "path": ["/"],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": [
+                "src=\"https://a.slack-edge.com",
+                "<title>Slack</title>",
+                "aria-label=\"Slack homepage\""
+            ],
+            "fingerprints": [
+                "src=\"https://a.slack-edge.com",
+                "<title>Slack</title>",
+                "aria-label=\"Slack homepage\""
+            ]
+        },
+        "metadata": {
+            "service": "slack",
+            "serviceName": "Slack",
+            "description": "Slack messaging service",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Follow the steps in the references"
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/slack/no-admin-approval-for-invitations",
+                "https://slack.com/help/articles/115004854783-Require-admin-approval-for-workspace-invitations",
+                "https://slack.com/help/articles/115004155306-Security-tips-to-protect-your-workspace"
+            ]
+        }
+    },
+    {
+        "id": 3,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://groups.google.com",
+            "path": ["/g/{TARGET}"],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": [
+                "continue=https%3A%2F%2Fgroups.google.com"
+            ],
+            "fingerprints": [
+                "<base href=\"https://groups.google.com/\">",
+                "<meta name=\"(application-name|apple-mobile-web-app-title)\" content=\"Google Groups\">",
+                "<link rel=\"manifest\" crossorigin=\"use-credentials\" href=\"_/GroupsFrontendUi/manifest.json\">"
+            ]
+        },
+        "metadata": {
+            "service": "google",
+            "serviceName": "Google Groups Misconfigured Read Permissions",
+            "description": "Google Groups can be left misconfigured and leak sensitive company data if access permissions aren't properly set",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Follow the steps in the references"
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/google-groups/google-groups",
+                "https://workspaceupdates.googleblog.com/2018/06/configure-your-google-groups-settings.html"
+            ]
+        }
+    },
+    {
+        "id": 4,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://{TARGET}.storage.googleapis.com",
+            "path": ["/"],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": [
+                "<ListBucketResult",
+                "<Code>NoSuchBucket</Code>",
+                "<Code>AccessDenied</Code>",
+                "<Message>Access denied.</Message>",
+                "<Details>Anonymous caller does not have storage.objects.list access to the Google Cloud Storage bucket. Permission 'storage.objects.list' denied on resource (or it may not exist).</Details>"
+            ],
+            "fingerprints": [
+                "<ListBucketResult",
+                "<Code>NoSuchBucket</Code>",
+                "<Code>AccessDenied</Code>",
+                "<Message>Access denied.</Message>",
+                "<Details>Anonymous caller does not have storage.objects.list access to the Google Cloud Storage bucket. Permission 'storage.objects.list' denied on resource (or it may not exist).</Details>"
+            ]
+        },
+        "metadata": {
+            "service": "google",
+            "serviceName": "Google CloudStorage Bucket Misconfigured Read Permissions",
+            "description": "GCP Storage Bucket can be left misconfigured and allow anyone to access files and objects potentially containing sensitive data if access permissions aren't properly enforced",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Observe the response for any disclosed information (like private files). View the references for more information."
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/google-cloud-storage-bucket/google-cloud-storage-bucket",
+                "https://cloud.google.com/storage/docs/access-control/making-data-public#buckets",
+                "https://cloud.google.com/storage/docs/public-access-prevention"
+            ]
+        }
+    },
+    {
+        "id": 5,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://jenkins.{TARGET}",
+            "path": ["/signup"],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": [
+                "<title>Sign in [Jenkins]</title>",
+                "<title>Signup not supported [Jenkins]</title>"
+            ],
+            "fingerprints": [
+                "<title>Sign up [Jenkins]</title>",
+                "If you already have a Jenkins account, "
+            ]
+        },
+        "metadata": {
+            "service": "jenkins",
+            "serviceName": "Jenkins Open Signups",
+            "description": "In case signups are not turned off, any user can create an account on the Jenkins instance and gain (privileged) access to (internal) developer resources.",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Observe the response and follow the steps to create an account. View the references for more information."
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/jenkins/open-signups",
+                "https://rohit-soni.medium.com/chaining-multiple-vulnerabilities-leads-to-remote-code-execution-rce-on-paytm-e77f2fd2295e"
+            ]
+        }
+    },
+    {
+        "id": 6,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://jenkins.{TARGET}",
+            "path": ["/console"],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": [
+                "Authentication required",
+                "You are authenticated as:",
+                "Groups that you are in:"
+            ],
+            "fingerprints": ["Script Console", "Groovy Script"]
+        },
+        "metadata": {
+            "service": "jenkins",
+            "serviceName": "Jenkins Public Groovy Script Console",
+            "description": "Groovy Script Console provides developers a way to run Groovy Script code right from their browser. However, in case permissions aren't configured properly, it could introduce another attack vector and often lead to remote code execution.",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Observe the response and follow the steps to check for code execution. View the references for more information."
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/jenkins/public-groovy-script-console",
+                "https://www.jenkins.io/doc/book/managing/script-console/",
+                "https://www.jenkins.io/doc/book/security/access-control/permissions/",
+                "https://rohit-soni.medium.com/chaining-multiple-vulnerabilities-leads-to-remote-code-execution-rce-on-paytm-e77f2fd2295e"
+            ]
+        }
+    },
+    {
+        "id": 7,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://gitlab.{TARGET}",
+            "path": ["/explore/snippets"],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": ["x-gitlab-meta:"],
+            "fingerprints": [
+                "<title>Explore snippets · GitLab</title>",
+                "<meta content=\"GitLab\" property=\"og:site_name\">",
+                "Discover projects, groups and snippets. Share your projects with others",
+                "No snippets found"
+            ]
+        },
+        "metadata": {
+            "service": "gitlab",
+            "serviceName": "Gitlab Private Source Code Snippets Exposed",
+            "description": "Your GitLab instance may expose sensitive source code or private repositories if read permissions on Project Snippets have been misconfigured.",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Observe the response and follow the steps to check public snippets. View the references for more information."
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/gitlab/gitlab-private-source-code-snippets-exposed",
+                "https://docs.gitlab.com/ee/user/snippets.html"
+            ]
+        }
+    },
+    {
+        "id": 8,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://{TARGET}",
+            "path": ["/node/1"],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": [
+                "<meta name=\"generator\" content=\"Drupal",
+                "(https://www.drupal.org)",
+                "/sites/default/files/css/"
+            ],
+            "fingerprints": ["<meta name=\"generator\" content=\"Drupal"]
+        },
+        "metadata": {
+            "service": "drupal",
+            "serviceName": "Drupal Nodes with Misconfigured Access Controls",
+            "description": "Drupal Nodes can contain sensitive data and if permissions are not enforced, they can leak private data to unauthorized users.",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Observe the response and follow the steps to check public snippets. View the references for more information."
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/drupal/drupal-nodes-with-misconfigured-access-controls",
+                "https://twitter.com/adrien_jeanneau/status/1273952564430725123",
+                "https://www.drupal.org/docs/core-modules-and-themes/core-modules/node-module/about-nodes",
+                "https://web.archive.org/web/20220203132234/https://0xblackbird.github.io/blog/post1"
+            ]
+        }
+    },
+    {
+        "id": 9,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://{TARGET}",
+            "path": ["/profiles"],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": ["Set-Cookie: XSRF-TOKEN=eyJpd"],
+            "fingerprints": [
+                "Illuminate\\Foundation\\Bootstrap\\HandleExceptions::handleError"
+            ]
+        },
+        "metadata": {
+            "service": "laravel",
+            "serviceName": "Laravel Debug Mode Enabled",
+            "description": "Laravel can expose sensitive data when debug mode is left enabled.",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Observe the response manually and check if debug mode is enabled on your target's Laravel application. View the references for more information."
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/laravel/debug-mode-enabled",
+                "https://laravel.com/docs/10.x/deployment#debug-mode"
+            ]
+        }
+    },
+    {
+        "id": 10,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://{TARGET}",
+            "path": ["/telescope/requests"],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": ["Set-Cookie: XSRF-TOKEN=eyJpd"],
+            "fingerprints": [
+                "<title>Requests - Telescope</title>",
+                "Laravel Telescope"
+            ]
+        },
+        "metadata": {
+            "service": "laravel",
+            "serviceName": "Laravel Telescope enabled in production",
+            "description": "Telescope can help developers look at incoming HTTP requests, view exceptions, logs, database queries and much more.",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Observe the response manually and check if Telescope is installed and used in your target's Laravel application. View the references for more information."
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/laravel/laravel-telescope-enabled-in-production",
+                "https://laravel.com/docs/10.x/telescope"
+            ]
+        }
+    },
+    {
+        "id": 11,
+        "request": {
+            "method": "POST",
+            "baseURL": "https://{TARGET}",
+            "path": [
+                "/graphql",
+                "/graphql/v1",
+                "/graph",
+                "/graphiql",
+                "/api/graphql",
+                "/v1/explorer",
+                "/v1/graphiql",
+                "/graphql/console",
+                "/graphql.php",
+                "/graphiql.php"
+            ],
+            "headers": [
+                {
+                    "Content-Type": "application/json"
+                }
+            ],
+            "body": "{\"query\":\"{__schema { types { name } } }\"}"
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": [],
+            "fingerprints": [
+                "\"__schema\"",
+                "\"name\":(.*)?\"__Directive\"",
+                "The __Directive type represents a Directive that a server supports."
+            ]
+        },
+        "metadata": {
+            "service": "graphql",
+            "serviceName": "GraphQL Introspection Query Enabled",
+            "description": "The introspection query returns a GraphQL schema with all the information about the GraphQL API, including what queries it supports like schemas, mutations, fields, but also in some cases, private fields.",
+            "reproductionSteps": [
+                "Replicate the POST request",
+                "Observe the response manually and check if GraphQL returned back the entire schema with all the information. View the references for more information."
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/graphql/graphql-introspection-query-enabled",
+                "https://graphql.org/learn/introspection/",
+                "https://cheatsheetseries.owasp.org/cheatsheets/GraphQL_Cheat_Sheet.html#introspection-graphiql",
+                "https://www.apollographql.com/blog/graphql/security/why-you-should-disable-graphql-introspection-in-production/"
+            ]
+        }
+    }
+]

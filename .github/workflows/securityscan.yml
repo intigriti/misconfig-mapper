@@ -1,0 +1,104 @@
+name: security
+
+on:
+  push:
+    branches: [master, main, ]
+  pull_request:
+    branches: [master,main]
+  schedule:
+    - cron: '0 5 * * 6'
+
+jobs:
+
+  codeql:
+
+    name: codeql
+    runs-on: ubuntu-latest
+
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+    -
+      name: Checkout repository
+      uses: actions/checkout@v4
+    -
+      id: vars
+      run: |
+        goVersion=$(grep '^FROM go' .github/go/Dockerfile | cut -d ' ' -f 2 | cut -d ':' -f 2)
+        echo "go_version=${goVersion}" >> $GITHUB_OUTPUT
+        echo "Using Go version ${goVersion}"
+    -
+      name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ steps.vars.outputs.go_version }}
+    -
+      name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: go
+    -
+      name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+
+  govulncheck:
+
+    name: govulncheck
+    runs-on: ubuntu-latest
+
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+    -
+      name: Checkout repository
+      uses: actions/checkout@v4
+    -
+      id: vars
+      run: |
+        goVersion=$(grep '^FROM go' .github/go/Dockerfile | cut -d ' ' -f 2 | cut -d ':' -f 2)
+        echo "go_version=${goVersion}" >> $GITHUB_OUTPUT
+        echo "Using Go version ${goVersion}"
+    -
+      name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ steps.vars.outputs.go_version }}
+    -
+      name: check for go vulnerabilities
+      uses: kmulvey/govulncheck-action@main
+      with:
+        packages: ./...
+
+  trivy:
+
+    name: trivy
+    runs-on: ubuntu-latest
+
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+    -
+      uses: actions/checkout@v4
+    -
+      name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        hide-progress: false
+        exit-code: '1'
+        ignore-unfixed: true
+        scan-type: 'fs'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+    -
+      name: Upload Trivy scan results to GitHub Security tab
+      if: always()
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
