@@ -155,11 +155,11 @@ Usage of ./misconfig-mapper:
   -delay int
     	Specify a delay between each request sent in milliseconds to enforce a rate limit.
   -headers string
-    	Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookie: xyz...;;"
+    	Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookie: xyz...;;")
   -list-services
     	Print all services with their associated IDs
   -max-redirects int
-    	Specify the max amount of redirects to follow. (default 3)
+    	Specify the max amount of redirects to follow. (default 5)
   -permutations string
     	Enable permutations and look for several other keywords of your target. (default "true")
   -service string
@@ -170,6 +170,8 @@ Usage of ./misconfig-mapper:
     	Specify your target domain name or company/organization name: "intigriti.com" or "intigriti" (files are also accepted)
   -timeout int
     	Specify a timeout for each request sent in milliseconds. (default 7000)
+  -update-templates
+    	Pull the latest templates & update your current services.json file
   -verbose
     	Print verbose messages
 ```

@@ -90,6 +90,7 @@ type RequestContext struct {
 	]
 */
 
+var servicesPath string = `./templates/services.json`
 var selectedServices []Service
 
 var suffixes = []string{
@@ -129,6 +130,65 @@ func loadTemplates() ([]Service, error) {
 	}
 
 	return services, nil
+}
+
+// Pull latest services from GitHub
+func updateTemplates(path *string, update bool) *error {
+	fmt.Printf("[+] Info: Pulling latest services and saving in %v\n", servicesPath)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(7000)*time.Millisecond)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, `GET`, `https://raw.githubusercontent.com/intigriti/misconfig-mapper/main/templates/services.json`, nil)
+	if err != nil {
+		return &err
+	}
+
+	client := http.Client{}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return &err
+	}
+	if res != nil {
+		defer res.Body.Close()
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return &err
+		}
+
+		var s *os.File
+		if update {
+			s, err = os.OpenFile(*path, os.O_EXCL|os.O_WRONLY, 0644)
+			if err != nil {
+				fmt.Println(1, err)
+				return &err
+			}
+			defer s.Close()
+		} else {
+			fmt.Println("[+] Info: Creating templates directory...")
+
+			// create "templates" directory
+			os.Mkdir(`./templates`, 0700)
+
+			// Create "services.json" file
+			s, err = os.Create(*path)
+			if err != nil {
+				return &err
+			}
+			defer s.Close()
+		}
+
+		_, err = io.Copy(s, bytes.NewReader(body))
+		if err != nil {
+			return &err
+		}
+	}
+
+	fmt.Println("[+] Info: Successfully pulled the latest templates!")
+
+	return nil
 }
 
 func parseRequestHeaders(rawHeaders string) map[string]string {
@@ -283,14 +343,14 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 		}
 
 		if r.SkipChecks {
-			pattern := fmt.Sprintf(`%s`, parseRegex(service.Response.DetectionFingerprints)) // Transform array into regex pattern
-			result.Exists = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body)))
+			pattern := parseRegex(service.Response.DetectionFingerprints) // Transform array into regex pattern
+			result.Exists = regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body)))
 
 			return
 		}
 
-		pattern := fmt.Sprintf(`%s`, parseRegex(service.Response.Fingerprints)) // Transform array into regex pattern
-		result.Vulnerable = !!regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body))) && statusCodeMatched
+		pattern := parseRegex(service.Response.Fingerprints) // Transform array into regex pattern
+		result.Vulnerable = (regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body))) && statusCodeMatched)
 	}
 }
 
@@ -375,11 +435,12 @@ func main() {
 	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services.")
 	skipChecksFlag := flag.String("skip-misconfiguration-checks", "", "Only check for existing instances (and skip checks for potential security misconfigurations).")
 	permutationsFlag := flag.String("permutations", "true", "Enable permutations and look for several other keywords of your target.")
-	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookie: xyz...;;\"")
+	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookie: xyz...;;\")")
 	delayFlag := flag.Int("delay", 0, "Specify a delay between each request sent in milliseconds to enforce a rate limit.")
 	timeoutFlag := flag.Int("timeout", 7000, "Specify a timeout for each request sent in milliseconds.")
 	maxRedirectsFlag := flag.Int("max-redirects", 5, "Specify the max amount of redirects to follow.")
 	listServicesFlag := flag.Bool("list-services", false, "Print all services with their associated IDs")
+	updateServicesFlag := flag.Bool("update-templates", false, "Pull the latest templates & update your current services.json file")
 	verboseFlag := flag.Bool("verbose", false, "Print verbose messages")
 
 	flag.Parse()
@@ -400,10 +461,30 @@ func main() {
 	fd := int(os.Stdout.Fd())
 	width, _, _ := term.GetSize(fd)
 
+	if *updateServicesFlag {
+		// If "services.json" already exists, update the templates
+		update := isFile(servicesPath)
+
+		err := updateTemplates(&servicesPath, update)
+		if err != nil {
+			fmt.Printf("[-] Error: Failed to update templates! (%v)\n", *err)
+		}
+
+		os.Exit(0)
+	}
+
 	services, err := loadTemplates()
 	if err != nil {
-		fmt.Println("[-] Error: Failed to load services.")
-		os.Exit(0)
+		fmt.Println("[-] Error: Failed to load services!")
+
+		err := updateTemplates(&servicesPath, false)
+		if err != nil {
+			fmt.Printf("[-] Error: Failed to pull latest services! (%v)\n", *err)
+			os.Exit(0)
+		}
+
+		// Reload new templates
+		services, _ = loadTemplates()
 	}
 
 	if *listServicesFlag {
