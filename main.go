@@ -170,7 +170,7 @@ func updateTemplates(path *string, update bool) *error {
 			fmt.Println("[+] Info: Creating templates directory...")
 
 			// create "templates" directory
-			os.Mkdir(`./templates`, 0700)
+			_ = os.Mkdir(`./templates`, 0700)
 
 			// Create "services.json" file
 			s, err = os.Create(*path)
