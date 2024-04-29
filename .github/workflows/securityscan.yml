@@ -17,6 +17,7 @@ jobs:
 
     permissions:
       security-events: write
+      contents: read
 
     steps:
     -
@@ -38,6 +39,7 @@ jobs:
 
     permissions:
       security-events: write
+      contents: read
 
     steps:
     -
@@ -67,6 +69,7 @@ jobs:
 
     permissions:
       security-events: write
+      contents: read
 
     steps:
     -
