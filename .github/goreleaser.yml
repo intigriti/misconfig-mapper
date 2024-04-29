@@ -1,0 +1,46 @@
+before:
+  hooks:
+  - go mod download
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore'
+
+release:
+  disable: false
+
+dockers:
+  -
+    image_templates:
+    - "ghcr.io/hazcod/one2sen/one2sen:latest"
+    - "ghcr.io/hazcod/one2sen/one2sen:{{ .Tag }}"
+    - "ghcr.io/hazcod/one2sen/one2sen:{{ .Major }}"
+
+sboms:
+  -
+    artifacts: archive
+
+builds:
+  -
+    id: cli
+    dir: ./cmd/
+    env: [CGO_ENABLED=0]
+    ldflags: [-w -s -extldflags "-static"]
+    goos: [darwin, linux, windows]
+    goarch: [amd64, arm64]
+    binary: one2sen
+
+archives:
+  -
+    name_template: "1p2sen_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format: zip
