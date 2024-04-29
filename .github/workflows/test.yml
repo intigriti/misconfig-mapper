@@ -1,0 +1,31 @@
+name: test
+on: pull_request
+
+jobs:
+  test:
+    name: go
+    runs-on: ubuntu-latest
+    steps:
+    -
+      name: Checkout
+      uses: actions/checkout@v4
+    -
+      name: Unshallow
+      run: git fetch --prune --unshallow
+    -
+      id: vars
+      run: |
+        goVersion=$(grep '^FROM go' .github/go/Dockerfile | cut -d ' ' -f 2 | cut -d ':' -f 2)
+        echo "go_version=${goVersion}" >> $GITHUB_OUTPUT
+        echo "Using Go version ${goVersion}"
+    -
+      name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ steps.vars.outputs.go_version }}
+    -
+      name: Download Go modules
+      run: go mod download
+    -
+      name: Run Tests
+      run: go test -v ./...
