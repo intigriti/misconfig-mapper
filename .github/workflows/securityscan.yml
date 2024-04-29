@@ -24,6 +24,17 @@ jobs:
       name: Checkout repository
       uses: actions/checkout@v4
     -
+      id: vars
+      run: |
+        goVersion=$(grep '^FROM go' .github/go/Dockerfile | cut -d ' ' -f 2 | cut -d ':' -f 2)
+        echo "go_version=${goVersion}" >> $GITHUB_OUTPUT
+        echo "Using Go version ${goVersion}"
+    -
+      name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ steps.vars.outputs.go_version }}
+    -
       name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
