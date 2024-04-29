@@ -3,3 +3,10 @@ misconfig-mapper
 
 # Release files
 releases
+
+# IntelliJ files
+.idea/
+
+# VS Code files
+.vscode/
+
