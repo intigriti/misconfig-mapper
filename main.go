@@ -101,6 +101,14 @@ var suffixes = []string{
 	"org",
 	"ltd",
 	"app",
+	"prod",
+	"internal",
+	"dev",
+	"developement",
+	"devops",
+	"stage",
+	"production",
+	"dev-only",
 	// Add more suffixes as needed
 }
 
