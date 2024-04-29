@@ -22,6 +22,13 @@ The tool is based on templates and is versatile. New services can be easily adde
 
 To install Misconfig Mapper, you can clone the repository and compile the code from source or [download the latest release](https://github.com/intigriti/misconfig-mapper/releases).
 
+> [!IMPORTANT]
+> If you decide to download a release, make sure to run the following command to install the required templates:
+> ```
+> ./misconfig-mapper -update-templates
+> ```
+> This command will ensure that you download the latest templates that misconfig-mapper requires.
+
 ### From source
 
 If you want to build your own instance from source, ensure you have the latest version of Golang installed. To verify your installation, run:
@@ -183,6 +190,13 @@ You can easily define more templates to scan for. Templates are in a structured 
 To define more services, edit the services.json file and separate each misconfiguration in your `services.json` file.
 
 An example template definition schema is available [here](.github/assets/template-schema.json).
+
+> [!TIP]
+> To update the service.json file to the latest version, simply run:
+> ```
+> ./misconfig-mapper -update-templates
+> ```
+> This command will pull the latest templates from Github.
 
 ## Template Type Definitions
 
