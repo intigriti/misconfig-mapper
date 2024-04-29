@@ -1,65 +1,66 @@
 package main
 
 import (
-	"io"
-	"os"
-	"fmt"
-	"flag"
-	"time"
-	"bytes"
 	"bufio"
-	"regexp"
+	"bytes"
 	"context"
-	"strings"
-	"net/url"
-	"net/http"
-	"io/ioutil"
 	"crypto/tls"
-	"path/filepath"
 	"encoding/json"
-	"golang.org/x/time/rate"
+	"flag"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"time"
+
 	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/time/rate"
 )
 
 /* /TYPES */
 
 type Service struct {
-	ID							int64					`json:"id"`
-	Request				struct		{
-		Method					string				`json:"method"`
-		BaseURL					string				`json:"baseURL"`
-		Path					[]string			`json:"path"`
-		Headers					[]map[string]string	`json:"headers"`
-		Body					any					`json:"body"`
-	}	`json:"request"`
-	Response			struct		{
-		StatusCode				int64				`json:"statusCode"`
-		DetectionFingerprints	[]string			`json:"detectionFingerprints"`
-		Fingerprints			[]string			`json:"fingerprints"`
-	}	`json:"response"`
-	Metadata			struct		{
-		Service					string				`json:"service"`
-		ServiceName				string 				`json:"serviceName"`
-		Description				string	 			`json:"description"`
-		ReproductionSteps		[]string			`json:"reproductionSteps"`
-		References				[]string			`json:"references"`
-	}	`json:"metadata"`
+	ID      int64 `json:"id"`
+	Request struct {
+		Method  string              `json:"method"`
+		BaseURL string              `json:"baseURL"`
+		Path    []string            `json:"path"`
+		Headers []map[string]string `json:"headers"`
+		Body    any                 `json:"body"`
+	} `json:"request"`
+	Response struct {
+		StatusCode            int64    `json:"statusCode"`
+		DetectionFingerprints []string `json:"detectionFingerprints"`
+		Fingerprints          []string `json:"fingerprints"`
+	} `json:"response"`
+	Metadata struct {
+		Service           string   `json:"service"`
+		ServiceName       string   `json:"serviceName"`
+		Description       string   `json:"description"`
+		ReproductionSteps []string `json:"reproductionSteps"`
+		References        []string `json:"references"`
+	} `json:"metadata"`
 }
 
 type Result struct {
-	URL							string		// Result URL
-	Exists						bool		// Used to report back in case the instance exists
-	Vulnerable					bool		// Used to report back in case the instance is vulnerable
-	ServiceId					string		// Service ID
-	Service						Service		// Service struct
+	URL        string  // Result URL
+	Exists     bool    // Used to report back in case the instance exists
+	Vulnerable bool    // Used to report back in case the instance is vulnerable
+	ServiceId  string  // Service ID
+	Service    Service // Service struct
 }
 
 type RequestContext struct {
-	SkipChecks					bool
-	Headers						map[string]string
-	Timeout						int
-	MaxRedirects				int
-	Verbose						bool
+	SkipChecks   bool
+	Headers      map[string]string
+	Timeout      int
+	MaxRedirects int
+	Verbose      bool
 }
 
 /* TYPES/ */
@@ -128,7 +129,7 @@ func ParseRequestHeaders(rawHeaders string) map[string]string {
 	requestHeaders := make(map[string]string)
 
 	headers := strings.Split(rawHeaders, ";;")
-		
+
 	for _, header := range headers {
 		var parts []string
 
@@ -147,7 +148,7 @@ func ParseRequestHeaders(rawHeaders string) map[string]string {
 }
 
 func ParseRegex(v []string) string {
-	x := strings.Join(v, `|`) // Split array entries with regex alternation
+	x := strings.Join(v, `|`)             // Split array entries with regex alternation
 	x = strings.Replace(x, ".", `\.`, -1) // Escape dot characters
 	x = fmt.Sprintf(`%s`, x)
 
@@ -163,7 +164,7 @@ func ReturnPossibleDomains(target string) []string {
 	// Remove leading and trailing spaces and convert to lowercase
 	target = strings.TrimSpace(strings.ToLower(target))
 
-    // Generate domain names by combining the keyword with each suffix
+	// Generate domain names by combining the keyword with each suffix
 	for _, s := range suffixes {
 		for _, c := range []string{".", "-", ""} {
 			domain := fmt.Sprintf(`%s%s%s`, target, c, s) // {target}{character}{suffix}
@@ -191,7 +192,7 @@ func GetTemplate(id string, services []Service) interface{} {
 }
 
 func CheckResponse(result *Result, service *Service, r *RequestContext) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.Timeout) * time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.Timeout)*time.Millisecond)
 	defer cancel()
 
 	client := &http.Client{
@@ -324,7 +325,7 @@ func PrintServices(services []Service, verbose bool, width int) {
 
 	// Print the table header
 	fmt.Println("| ID | Service")
-	fmt.Printf(`|----|%v`, strings.Repeat("-", width - 6))
+	fmt.Printf(`|----|%v`, strings.Repeat("-", width-6))
 
 	// Print each row of the table
 	for _, service := range services {
@@ -384,11 +385,11 @@ func main() {
 	var delay int = *delayFlag
 
 	var reqCTX RequestContext = RequestContext{
-		SkipChecks:			false,
-		Headers:			ParseRequestHeaders(*requestHeadersFlag),
-		Timeout:			*timeoutFlag,
-		MaxRedirects:		*maxRedirectsFlag,
-		Verbose:			*verboseFlag,
+		SkipChecks:   false,
+		Headers:      ParseRequestHeaders(*requestHeadersFlag),
+		Timeout:      *timeoutFlag,
+		MaxRedirects: *maxRedirectsFlag,
+		Verbose:      *verboseFlag,
 	}
 
 	// Derrive terminal width
@@ -411,7 +412,7 @@ func main() {
 		return
 	}
 
-	limiter := rate.NewLimiter(rate.Every(time.Duration(delay) * time.Millisecond), 1)
+	limiter := rate.NewLimiter(rate.Every(time.Duration(delay)*time.Millisecond), 1)
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
 		InsecureSkipVerify: true,
 	}
@@ -429,22 +430,22 @@ func main() {
 		if reqCTX.Verbose {
 			fmt.Printf("[+] %v Services selected!\n", len(s.([]Service)))
 		}
-	
+
 		selectedServices = append(selectedServices, s.([]Service)...)
 	}
 
 	// Parse "skip-misconfiguration-checks" CLI flag
 	switch strings.ToLower(*skipChecksFlag) {
-		case "", "y", "yes", "true", "on", "1", "enable":
-			reqCTX.SkipChecks = true
-			break
-		case "n", "no", "false", "off", "0", "disable":
-			reqCTX.SkipChecks = false
-			break
-		default:
-			reqCTX.SkipChecks = false
-			fmt.Printf("[-] Warning: Invalid skipChecks flag value supplied: \"%v\"\n", *skipChecksFlag)
-			break
+	case "", "y", "yes", "true", "on", "1", "enable":
+		reqCTX.SkipChecks = true
+		break
+	case "n", "no", "false", "off", "0", "disable":
+		reqCTX.SkipChecks = false
+		break
+	default:
+		reqCTX.SkipChecks = false
+		fmt.Printf("[-] Warning: Invalid skipChecks flag value supplied: \"%v\"\n", *skipChecksFlag)
+		break
 	}
 
 	// Parse "permutations" CLI flag
@@ -452,16 +453,16 @@ func main() {
 	var permutations bool
 
 	switch strings.ToLower(*permutationsFlag) {
-		case "", "y", "yes", "true", "on", "1", "enable":
-			permutations = true
-			break
-		case "n", "no", "false", "off", "0", "disable":
-			permutations = false
-			break
-		default:
-			permutations = false
-			fmt.Printf("[-] Warning: Invalid permutations flag value supplied: \"%v\"\n", *permutationsFlag)
-			break
+	case "", "y", "yes", "true", "on", "1", "enable":
+		permutations = true
+		break
+	case "n", "no", "false", "off", "0", "disable":
+		permutations = false
+		break
+	default:
+		permutations = false
+		fmt.Printf("[-] Warning: Invalid permutations flag value supplied: \"%v\"\n", *permutationsFlag)
+		break
 	}
 
 	if IsFile(target) {
@@ -528,7 +529,7 @@ func main() {
 				result.URL = URL.String()
 				result.ServiceId = service
 				result.Service = selectedService
-				result.Exists = false // Default value
+				result.Exists = false     // Default value
 				result.Vulnerable = false // Default value
 
 				CheckResponse(&result, &selectedService, &reqCTX)
@@ -547,7 +548,7 @@ func main() {
 						continue
 					}
 
-					if (!result.Exists && !result.Vulnerable) {
+					if !result.Exists && !result.Vulnerable {
 						fmt.Printf("[-] %s instance is not vulnerable (%s)\n", result.Service.Metadata.ServiceName, result.URL)
 					}
 				}

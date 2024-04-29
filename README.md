@@ -45,11 +45,12 @@ $ go build -o misconfig-mapper
 
 3. Finally, add or move the binary to a folder in your `$PATH` (optional)
 
-
 ### CLI Auto-Completion
+
 In case you would like to enable autocompletions for Misconfig Mapper, we support both Bash and ZSH.
 
 #### Bash
+
 ```bash
 #!/bin/bash
 _misconfig_mapper_autocomplete()
@@ -70,6 +71,7 @@ complete -F _misconfig_mapper_autocomplete misconfig-mapper
 ```
 
 #### ZSH (OhMyZsh)
+
 ```zsh
 #!/bin/zsh
 #compdef misconfig-mapper
@@ -98,6 +100,7 @@ _auto_completion_misconfig_mapper "$@"
 > [!IMPORTANT]
 > Make sure to save this file as `_auto_completion_misconfig_mapper` under your `$fpath`.
 > Afterwards, you will have to initialize the completion system with:
+>
 > ```
 > autoload -U compinit
 > compinit
@@ -219,7 +222,7 @@ The `path` field checks whether the service is vulnerable by observing the respo
 
 > [!TIP]
 > The CLI tool can auto-detect and replace the **"{TARGET}"** template variable with the target provided using the target flag.\
-\
+> \
 > Example: /app/{TARGET} will allow the tool to look for:
 >
 > -   https://example.com/app/yourcompanyname

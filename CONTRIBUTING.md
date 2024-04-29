@@ -3,6 +3,7 @@
 This guideline contains several steps to help you contribute to [Misconfig Mapper](https://github.com/intigriti/misconfig-mapper)! Thank you for helping out! We appreciate all contributions made to this project!
 
 ## Submitting a new template
+
 Want to help add coverage for a new service or improve an existing one? Please create a pull request with the new template added to the `services.json` template file.
 
 The latest type definitions and template schema can be found [here](/assets/template-schema.json).
