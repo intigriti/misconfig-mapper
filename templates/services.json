@@ -143,14 +143,12 @@
             "statusCode": 200,
             "detectionFingerprints": [
                 "<ListBucketResult",
-                "<Code>NoSuchBucket</Code>",
                 "<Code>AccessDenied</Code>",
                 "<Message>Access denied.</Message>",
                 "<Details>Anonymous caller does not have storage.objects.list access to the Google Cloud Storage bucket. Permission 'storage.objects.list' denied on resource (or it may not exist).</Details>"
             ],
             "fingerprints": [
                 "<ListBucketResult",
-                "<Code>NoSuchBucket</Code>",
                 "<Code>AccessDenied</Code>",
                 "<Message>Access denied.</Message>",
                 "<Details>Anonymous caller does not have storage.objects.list access to the Google Cloud Storage bucket. Permission 'storage.objects.list' denied on resource (or it may not exist).</Details>"
