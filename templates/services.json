@@ -407,5 +407,41 @@
                 "https://www.apollographql.com/blog/graphql/security/why-you-should-disable-graphql-introspection-in-production/"
             ]
         }
+    },
+    {
+        "id": 12,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://{TARGET}.freshservice.com",
+            "path": [
+                "/support/signup"
+            ],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": [
+                "<h2>Browse help articles</h2>",
+                "(<h2>)?Announcements</(h2|h3)>",
+                "var TICKET_SITE_KEY"
+            ],
+            "fingerprints": [
+                "<title>Signup for a new account"
+            ]
+        },
+        "metadata": {
+            "service": "freshworks",
+            "serviceName": "Freshworks Freshservice Open Signups",
+            "description": "Freshworks Freshservice Open Signups",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Follow the steps in the references"
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/freshworks-freshservice/open-user-registration",
+                "https://infosecwriteups.com/hundreds-of-companies-internal-data-exposed-part-2-the-freshservice-misconfiguration-a9432c0b5dc8",
+                "https://partnersupport.freshworks.com/en/support/solutions/articles/225287-how-can-i-disable-the-option-for-requesters-to-sign-up-to-our-helpdesk-"
+            ]
+        }
     }
 ]

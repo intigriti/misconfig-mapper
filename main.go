@@ -583,11 +583,7 @@ func main() {
 				}
 
 				// Crafting URL
-				if permutations {
-					targetURL = strings.Replace(fmt.Sprintf(`%v%v`, selectedService.Request.BaseURL, path), "{TARGET}", domain, -1)
-				} else {
-					targetURL = fmt.Sprintf(`%v%v`, domain, path)
-				}
+				targetURL = strings.Replace(fmt.Sprintf(`%v%v`, selectedService.Request.BaseURL, path), "{TARGET}", domain, -1)
 
 				URL, err := url.Parse(targetURL)
 				if err != nil {
