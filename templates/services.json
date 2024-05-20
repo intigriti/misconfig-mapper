@@ -4,7 +4,9 @@
         "request": {
             "method": "GET",
             "baseURL": "https://{TARGET}.atlassian.net",
-            "path": ["/secure/Signup!default.jspa"],
+            "path": [
+                "/secure/Signup!default.jspa"
+            ],
             "body": null
         },
         "response": {
@@ -109,12 +111,14 @@
         "response": {
             "statusCode": 200,
             "detectionFingerprints": [
-                "continue=https%3A%2F%2Fgroups.google.com"
-            ],
-            "fingerprints": [
+                "continue=https%3A%2F%2Fgroups.google.com",
                 "<base href=\"https://groups.google.com/\">",
                 "<meta name=\"(application-name|apple-mobile-web-app-title)\" content=\"Google Groups\">",
                 "<link rel=\"manifest\" crossorigin=\"use-credentials\" href=\"_/GroupsFrontendUi/manifest.json\">"
+            ],
+            "fingerprints": [
+                "</u>This is the group for <a href=\"",
+                "(aria-placeholder|value|aria-label)=\"Search conversations within "
             ]
         },
         "metadata": {

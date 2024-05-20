@@ -433,7 +433,7 @@ func processInput(fileName string, input *[]string) {
 func main() {
 	targetFlag := flag.String("target", "", "Specify your target domain name or company/organization name: \"intigriti.com\" or \"intigriti\" (files are also accepted)")
 	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services.")
-	skipChecksFlag := flag.String("skip-misconfiguration-checks", "", "Only check for existing instances (and skip checks for potential security misconfigurations).")
+	skipChecksFlag := flag.String("skip-misconfiguration-checks", "false", "Only check for existing instances (and skip checks for potential security misconfigurations).")
 	permutationsFlag := flag.String("permutations", "true", "Enable permutations and look for several other keywords of your target.")
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookie: xyz...;;\")")
 	delayFlag := flag.Int("delay", 0, "Specify a delay between each request sent in milliseconds to enforce a rate limit.")
@@ -521,9 +521,9 @@ func main() {
 
 	// Parse "skip-misconfiguration-checks" CLI flag
 	switch strings.ToLower(*skipChecksFlag) {
-	case "", "y", "yes", "true", "on", "1", "enable":
+	case "y", "yes", "true", "on", "1", "enable":
 		reqCTX.SkipChecks = true
-	case "n", "no", "false", "off", "0", "disable":
+	case "", "n", "no", "false", "off", "0", "disable":
 		reqCTX.SkipChecks = false
 	default:
 		reqCTX.SkipChecks = false
@@ -535,9 +535,9 @@ func main() {
 	var permutations bool
 
 	switch strings.ToLower(*permutationsFlag) {
-	case "", "y", "yes", "true", "on", "1", "enable":
+	case "y", "yes", "true", "on", "1", "enable":
 		permutations = true
-	case "n", "no", "false", "off", "0", "disable":
+	case "", "n", "no", "false", "off", "0", "disable":
 		permutations = false
 	default:
 		permutations = false
