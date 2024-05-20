@@ -66,7 +66,7 @@ _misconfig_mapper_autocomplete()
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="-target -service -permutations -skip-misconfiguration-checks -list-services -max-redirects -headers -delay -timeout -verbose"
+    opts="-target -service -permutations -skip-misconfiguration-checks -list-services -max-redirects -headers -delay -timeout -update-templates -verbose"
 
     if [[ ${cur} == -* ]] ; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -84,7 +84,7 @@ complete -F _misconfig_mapper_autocomplete misconfig-mapper
 #compdef misconfig-mapper
 
 _auto_completion_misconfig_mapper() {
-    local -a options=("-target" "-service" "-permutations" "-skip-misconfiguration-checks" "-list-services" "-max-redirects" "-headers" "-delay" "-timeout" "-verbose")
+    local -a options=("-target" "-service" "-permutations" "-skip-misconfiguration-checks" "-list-services" "-max-redirects" "-headers" "-delay" "-timeout" "-update-templates" "-verbose")
 
     _arguments \
         '*: :->args' \
@@ -171,7 +171,7 @@ Usage of ./misconfig-mapper:
   -service string
     	Specify the service ID you'd like to check for: "0" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services. (default "0")
   -skip-misconfiguration-checks string
-    	Only check for existing instances (and skip checks for potential security misconfigurations).
+    	Only check for existing instances (and skip checks for potential security misconfigurations). (default "false")
   -target string
     	Specify your target domain name or company/organization name: "intigriti.com" or "intigriti" (files are also accepted)
   -timeout int
