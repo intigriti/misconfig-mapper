@@ -447,5 +447,42 @@
                 "https://partnersupport.freshworks.com/en/support/solutions/articles/225287-how-can-i-disable-the-option-for-requesters-to-sign-up-to-our-helpdesk-"
             ]
         }
+    },
+    {
+        "id": 13,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://{TARGET}.atlassian.net",
+            "path": [
+                "/wiki/spaces"
+            ],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": [
+                "location: /wiki",
+                "<title>Log in with Atlassian account</title>"
+            ],
+            "fingerprints": [
+                "<meta id=\"confluence-context-path\" name=\"confluence-context-path\" content=\"/wiki\">",
+                "<meta id=\"confluence-base-url\" name=\"confluence-base-url\" content=\"https://[^\\.]+.atlassian.net/wiki\">"
+            ]
+        },
+        "metadata": {
+            "service": "atlassian",
+            "serviceName": "Atlassian Misconfigured Spaces",
+            "description": "Atlassian Misconfigured Spaces",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Follow the steps in the references"
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/atlassian-confluence/misconfigured-spaces",
+                "https://infosecwriteups.com/hundreds-of-companies-internal-data-exposed-the-confluence-cloud-misconfiguration-63cbc143caea",
+                "https://confluence.atlassian.com/doc/assign-space-permissions-139460.html",
+                "https://support.atlassian.com/confluence-cloud/docs/make-a-space-public/"
+            ]
+        }
     }
 ]

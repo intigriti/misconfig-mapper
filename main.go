@@ -358,7 +358,7 @@ func handleResult(result *Result, reqCTX *RequestContext, width int) {
 	fmt.Println(strings.Repeat("-", width))
 
 	if reqCTX.SkipChecks {
-		fmt.Printf("[+] 1 %s Instance found!\n", result.Service.Metadata.ServiceName)
+		fmt.Printf("[+] 1 %s detected!\n", result.Service.Metadata.ServiceName)
 	} else {
 		fmt.Println("[+] 1 Vulnerable result found!")
 	}
