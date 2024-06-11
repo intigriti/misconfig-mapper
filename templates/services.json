@@ -313,10 +313,11 @@
             "body": null
         },
         "response": {
-            "statusCode": 200,
+            "statusCode": 500,
             "detectionFingerprints": ["Set-Cookie: XSRF-TOKEN=eyJpd"],
             "fingerprints": [
-                "Illuminate\\Foundation\\Bootstrap\\HandleExceptions::handleError"
+                "Illuminate\\\\Foundation\\\\Bootstrap\\\\HandleExceptions::handleError",
+                "Illuminate\\\\Foundation\\\\Http\\\\Kernel"
             ]
         },
         "metadata": {
