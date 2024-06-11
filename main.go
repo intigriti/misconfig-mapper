@@ -256,6 +256,16 @@ func getTemplate(id string, services []Service) interface{} {
 	return nil
 }
 
+func craftTargetURL(baseURL string, path string, domain string) string {
+	var targetURL string
+
+	// Normalize protocol as it is already defined in the template's "baseURL" field
+	domain = regexp.MustCompile(`^http(s)?:\/\/`).ReplaceAllString(domain, "")
+	targetURL = strings.Replace(fmt.Sprintf(`%v%v`, baseURL, path), "{TARGET}", domain, -1)
+
+	return targetURL
+}
+
 func checkResponse(result *Result, service *Service, r *RequestContext) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(r.Timeout)*time.Millisecond)
 	defer cancel()
@@ -343,14 +353,28 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 		}
 
 		if r.SkipChecks {
-			pattern := parseRegex(service.Response.DetectionFingerprints) // Transform array into regex pattern
-			result.Exists = regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body)))
+			expr := parseRegex(service.Response.DetectionFingerprints) // Transform array into regex pattern
+
+			re, err := regexp.Compile(expr)
+			if err != nil {
+				fmt.Printf("[-] Error: Invalid detection expression supplied for service \"%v\" (error: %v)!\n", service.Metadata.ServiceName, err)
+				return
+			}
+
+			result.Exists = re.MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body)))
 
 			return
 		}
 
-		pattern := parseRegex(service.Response.Fingerprints) // Transform array into regex pattern
-		result.Vulnerable = (regexp.MustCompile(pattern).MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body))) && statusCodeMatched)
+		expr := parseRegex(service.Response.Fingerprints) // Transform array into regex pattern
+
+		re, err := regexp.Compile(expr)
+		if err != nil {
+			fmt.Printf("[-] Error: Invalid expression supplied for service \"%v\" (error: %v)!\n", service.Metadata.ServiceName, err)
+			return
+		}
+
+		result.Vulnerable = (re.MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body))) && statusCodeMatched)
 	}
 }
 
@@ -497,7 +521,10 @@ func main() {
 		return
 	}
 
+	// Initiate new rate limiter
 	limiter := rate.NewLimiter(rate.Every(time.Duration(delay)*time.Millisecond), 1)
+
+	// Allow insecure HTTP requests
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
 		InsecureSkipVerify: true,
 	}
@@ -583,7 +610,7 @@ func main() {
 				}
 
 				// Crafting URL
-				targetURL = strings.Replace(fmt.Sprintf(`%v%v`, selectedService.Request.BaseURL, path), "{TARGET}", domain, -1)
+				targetURL = craftTargetURL(selectedService.Request.BaseURL, path, domain)
 
 				URL, err := url.Parse(targetURL)
 				if err != nil {
