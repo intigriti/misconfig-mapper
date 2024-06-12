@@ -107,9 +107,27 @@ var suffixes = []string{
 	"dev",
 	"developement",
 	"devops",
+	"logs",
+	"logging",
+	"admin",
+	"log",
 	"stage",
+	"staging",
+	"stg",
 	"production",
 	"dev-only",
+	"cicd",
+	"employee-only",
+	"testing",
+	"secret",
+	"kibana",
+	"employees",
+	"partners",
+	"sso",
+	"saml",
+	"tickets",
+	"issues",
+	"oauth2"
 	// Add more suffixes as needed
 }
 
