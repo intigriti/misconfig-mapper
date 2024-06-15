@@ -127,7 +127,7 @@ var suffixes = []string{
 	"saml",
 	"tickets",
 	"issues",
-	"oauth2"
+	"oauth2",
 	// Add more suffixes as needed
 }
 
