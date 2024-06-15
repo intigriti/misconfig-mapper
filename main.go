@@ -90,7 +90,10 @@ type RequestContext struct {
 	]
 */
 
-var servicesPath string = `./templates/services.json`
+var exePath, _ = os.Executable()
+var exeDir string = filepath.Dir(exePath)
+var templatesDir string = filepath.Join(exeDir, `./templates/`)
+var servicesPath string = filepath.Join(exeDir, `./templates/services.json`)
 var selectedServices []Service
 
 var suffixes = []string{
@@ -134,9 +137,9 @@ var suffixes = []string{
 func loadTemplates() ([]Service, error) {
 	var services []Service
 
-	file, err := os.Open("./templates/services.json")
+	file, err := os.Open(servicesPath)
 	if err != nil {
-		fmt.Println("ERROR: Failed opening file \"./templates/services.json\":", err)
+		fmt.Println("ERROR: Failed opening file \"", servicesPath, "\":", err)
 		return services, err
 	}
 	defer file.Close()
@@ -188,7 +191,7 @@ func updateTemplates(path *string, update bool) *error {
 			fmt.Println("[+] Info: Creating templates directory...")
 
 			// create "templates" directory
-			_ = os.Mkdir(`./templates`, 0700)
+			_ = os.Mkdir(templatesDir, 0700)
 
 			// Create "services.json" file
 			s, err = os.Create(*path)
