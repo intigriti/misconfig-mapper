@@ -90,7 +90,7 @@ type RequestContext struct {
 	]
 */
 
-var exePath, err = os.Executable()
+var exePath, _ = os.Executable()
 var exeDir string = filepath.Dir(exePath)
 var templatesDir string = filepath.Join(exeDir, `./templates/`)
 var servicesPath string = filepath.Join(exeDir, `./templates/services.json`)
