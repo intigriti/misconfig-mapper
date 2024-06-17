@@ -90,10 +90,6 @@ type RequestContext struct {
 	]
 */
 
-var exePath, _ = os.Executable()
-var exeDir string = filepath.Dir(exePath)
-var templatesDir string = filepath.Join(exeDir, `./templates/`)
-var servicesPath string = filepath.Join(exeDir, `./templates/services.json`)
 var selectedServices []Service
 
 var suffixes = []string{
@@ -134,12 +130,12 @@ var suffixes = []string{
 	// Add more suffixes as needed
 }
 
-func loadTemplates() ([]Service, error) {
+func loadTemplates(servicesPath string) ([]Service, error) {
 	var services []Service
 
 	file, err := os.Open(servicesPath)
 	if err != nil {
-		fmt.Println("ERROR: Failed opening file \"", servicesPath, "\":", err)
+		fmt.Printf("ERROR: Failed opening file '%s': %s\n", servicesPath, err)
 		return services, err
 	}
 	defer file.Close()
@@ -154,10 +150,10 @@ func loadTemplates() ([]Service, error) {
 }
 
 // Pull latest services from GitHub
-func updateTemplates(path *string, update bool) *error {
+func updateTemplates(templatesDir, servicesPath string, update bool) *error {
 	fmt.Printf("[+] Info: Pulling latest services and saving in %v\n", servicesPath)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(7000)*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 7*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, `GET`, `https://raw.githubusercontent.com/intigriti/misconfig-mapper/main/templates/services.json`, nil)
@@ -181,7 +177,7 @@ func updateTemplates(path *string, update bool) *error {
 
 		var s *os.File
 		if update {
-			s, err = os.OpenFile(*path, os.O_EXCL|os.O_WRONLY, 0644)
+			s, err = os.OpenFile(servicesPath, os.O_EXCL|os.O_WRONLY, 0644)
 			if err != nil {
 				fmt.Println(1, err)
 				return &err
@@ -194,7 +190,7 @@ func updateTemplates(path *string, update bool) *error {
 			_ = os.Mkdir(templatesDir, 0700)
 
 			// Create "services.json" file
-			s, err = os.Create(*path)
+			s, err = os.Create(servicesPath)
 			if err != nil {
 				return &err
 			}
@@ -485,6 +481,7 @@ func main() {
 	timeoutFlag := flag.Int("timeout", 7000, "Specify a timeout for each request sent in milliseconds.")
 	maxRedirectsFlag := flag.Int("max-redirects", 5, "Specify the max amount of redirects to follow.")
 	listServicesFlag := flag.Bool("list-services", false, "Print all services with their associated IDs")
+	templatesPath := flag.String("templates", "./templates", "Specify the templates folder location")
 	updateServicesFlag := flag.Bool("update-templates", false, "Pull the latest templates & update your current services.json file")
 	verboseFlag := flag.Bool("verbose", false, "Print verbose messages")
 
@@ -506,30 +503,37 @@ func main() {
 	fd := int(os.Stdout.Fd())
 	width, _, _ := term.GetSize(fd)
 
+	// build templates directory
+	serviceFilePath := filepath.Join(*templatesPath, `services.json`)
+
 	if *updateServicesFlag {
 		// If "services.json" already exists, update the templates
-		update := isFile(servicesPath)
+		update := isFile(serviceFilePath)
 
-		err := updateTemplates(&servicesPath, update)
+		err := updateTemplates(*templatesPath, serviceFilePath, update)
 		if err != nil {
 			fmt.Printf("[-] Error: Failed to update templates! (%v)\n", *err)
+			os.Exit(1)
 		}
 
 		os.Exit(0)
 	}
 
-	services, err := loadTemplates()
+	services, err := loadTemplates(serviceFilePath)
 	if err != nil {
 		fmt.Println("[-] Error: Failed to load services!")
 
-		err := updateTemplates(&servicesPath, false)
+		err := updateTemplates(*templatesPath, serviceFilePath, false)
 		if err != nil {
 			fmt.Printf("[-] Error: Failed to pull latest services! (%v)\n", *err)
-			os.Exit(0)
+			os.Exit(1)
 		}
 
 		// Reload new templates
-		services, _ = loadTemplates()
+		if _, err2 := loadTemplates(serviceFilePath); err2 != nil {
+			fmt.Println("[-] Error: Failed to load services: " + err2.Error())
+			os.Exit(1)
+		}
 	}
 
 	if *listServicesFlag {
