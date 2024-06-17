@@ -108,7 +108,7 @@ var suffixes = []string{
 	"prod",
 	"internal",
 	"dev",
-	"developement",
+	"development",
 	"devops",
 	"logs",
 	"logging",
