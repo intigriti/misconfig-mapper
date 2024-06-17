@@ -174,6 +174,8 @@ Usage of ./misconfig-mapper:
     	Only check for existing instances (and skip checks for potential security misconfigurations). (default "false")
   -target string
     	Specify your target domain name or company/organization name: "intigriti.com" or "intigriti" (files are also accepted)
+  -templates string
+        Specify the templates folder location (default "./templates")
   -timeout int
     	Specify a timeout for each request sent in milliseconds. (default 7000)
   -update-templates
