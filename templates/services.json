@@ -178,7 +178,10 @@
         "request": {
             "method": "GET",
             "baseURL": "https://jenkins.{TARGET}",
-            "path": ["/signup"],
+            "path": [
+            	"/signup",
+				"/jenkins/signup"
+            ],
             "body": null
         },
         "response": {
@@ -483,6 +486,58 @@
                 "https://infosecwriteups.com/hundreds-of-companies-internal-data-exposed-the-confluence-cloud-misconfiguration-63cbc143caea",
                 "https://confluence.atlassian.com/doc/assign-space-permissions-139460.html",
                 "https://support.atlassian.com/confluence-cloud/docs/make-a-space-public/"
+            ]
+        }
+    },
+    {
+        "id": 14,
+        "request": {
+            "method": "POST",
+            "baseURL": "https://{TARGET}.lightning.force.com",
+            "path": [
+                "/aura",
+                "/sfsites/aura",
+                "/s/sfsites/aura"
+            ],
+            "headers": [
+                {
+                    "Content-Type": "application/json"
+                }
+            ],
+            "body": "{}"
+        },
+        "response": {
+            "statusCode": 401,
+            "detectionFingerprints": [
+                "markup:\/\/aura:invalidSession",
+                "aura:\/\/String"
+            ],
+            "fingerprints": [
+                "markup:\/\/aura:invalidSession",
+                "aura:\/\/String"
+            ]
+        },
+        "metadata": {
+            "service": "salesforce",
+            "serviceName": "Salesforce Lightning Aura Component Enabled",
+            "description": "Salesforce Lightning Aura Component is enabled and if access controls are not properly enforced, it may introduce several security issues such as data leaks and potential privilege escalations.",
+            "reproductionSteps": [
+                "Replicate the POST request",
+                "Observe the response manually and further enumerate global and custom Salesforce Objects. View the references for more information."
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/salesforce/salesforce-lightning-aura-component-enabled",
+                "https://www.enumerated.ie/index/salesforce",
+                "https://www.enumerated.ie/index/salesforce-lightning-tinting-the-windows",
+                "https://infosecwriteups.com/in-simple-words-pen-testing-salesforce-saas-application-part-1-the-essentials-ffae632a00e5",
+                "https://infosecwriteups.com/in-simple-words-pen-testing-salesforce-saas-application-part-2-fuzz-exploit-eefae11ba5ae",
+                "https://infosecwriteups.com/salesforce-bug-hunting-to-critical-bug-b5da44789d3",
+                "https://www.biswajeetsamal.com/blog/salesforce-object-key-prefix-list/",
+                "https://www.varonis.com/blog/abusing-salesforce-communities",
+                "https://web.archive.org/web/20210116171949/https://mcafee.com/blogs/enterprise/cloud-security/17-must-enable-salesforce-security-capabilities-and-other-best-practices/",
+                "https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/intro_lightning.htm",
+                "https://help.salesforce.com/s/articleView?id=ind.media_asm_Disable_Lightning_Web_Security.htm&type=5",
+                "https://trailhead.salesforce.com/content/learn/modules/data_security/data_security_records"
             ]
         }
     }
