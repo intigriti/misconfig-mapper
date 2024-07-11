@@ -187,12 +187,15 @@
         "response": {
             "statusCode": 200,
             "detectionFingerprints": [
-                "<title>Sign in [Jenkins]</title>",
-                "<title>Signup not supported [Jenkins]</title>"
+                "<title>Sign in \\[Jenkins\\]</title>",
+                "<title>Signup not supported \\[Jenkins\\]</title>",
+                "<title>Register \\[Jenkins\\]</title>"
             ],
             "fingerprints": [
-                "<title>Sign up [Jenkins]</title>",
-                "If you already have a Jenkins account, "
+                "<title>Sign up \\[Jenkins\\]</title>",
+                "<title>Register \\[Jenkins\\]</title>",
+                "<title>Create an account! \\[Jenkins\\]</title>",
+                "If you already have a Jenkins account,"
             ]
         },
         "metadata": {
@@ -526,7 +529,7 @@
                 "Observe the response manually and further enumerate global and custom Salesforce Objects. View the references for more information."
             ],
             "references": [
-                "https://bugology.intigriti.io/misconfig-mapper-docs/services/salesforce/salesforce-lightning-aura-component-enabled",
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/salesforce/salesforce-lightning-aura-components-enabled",
                 "https://www.enumerated.ie/index/salesforce",
                 "https://www.enumerated.ie/index/salesforce-lightning-tinting-the-windows",
                 "https://infosecwriteups.com/in-simple-words-pen-testing-salesforce-saas-application-part-1-the-essentials-ffae632a00e5",
