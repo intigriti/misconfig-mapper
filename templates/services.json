@@ -187,14 +187,14 @@
         "response": {
             "statusCode": 200,
             "detectionFingerprints": [
-                "<title>Sign in [Jenkins]</title>",
-                "<title>Signup not supported [Jenkins]</title>",
-                "<title>Register [Jenkins]</title>"
+                "<title>Sign in \\[Jenkins\\]</title>",
+                "<title>Signup not supported \\[Jenkins\\]</title>",
+                "<title>Register \\[Jenkins\\]</title>"
             ],
             "fingerprints": [
-                "<title>Sign up [Jenkins]</title>",
-                "<title>Register [Jenkins]</title>",
-                "<title>Create an account! [Jenkins]</title>",
+                "<title>Sign up \\[Jenkins\\]</title>",
+                "<title>Register \\[Jenkins\\]</title>",
+                "<title>Create an account! \\[Jenkins\\]</title>",
                 "If you already have a Jenkins account,"
             ]
         },

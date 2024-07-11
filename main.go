@@ -318,8 +318,6 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 		return
 	}
 
-	req = req.WithContext(ctx)
-
 	if len(service.Request.Headers) > 0 {
 		for _, header := range service.Request.Headers {
 			for key, value := range header {
