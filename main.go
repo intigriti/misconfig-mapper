@@ -237,11 +237,11 @@ func parseRegex(v []string) string {
 	return x
 }
 
-func returnPossibleDomains(target string) []string {
-	var possibleDomains []string
+func returnPossibleTargets(target string) []string {
+	var possibleTargets []string
 
 	// By default, always add target name
-	possibleDomains = append(possibleDomains, target)
+	possibleTargets = append(possibleTargets, target)
 
 	// Remove leading and trailing spaces and convert to lowercase
 	target = strings.TrimSpace(strings.ToLower(target))
@@ -250,11 +250,11 @@ func returnPossibleDomains(target string) []string {
 	for _, s := range suffixes {
 		for _, c := range []string{".", "-", ""} {
 			domain := fmt.Sprintf(`%s%s%s`, target, c, s) // {target}{character}{suffix}
-			possibleDomains = append(possibleDomains, domain)
+			possibleTargets = append(possibleTargets, domain)
 		}
 	}
 
-	return possibleDomains
+	return possibleTargets
 }
 
 func getTemplate(id string, services []Service) interface{} {
@@ -581,7 +581,7 @@ func main() {
 	}
 
 	// Parse "permutations" CLI flag
-	var possibleDomains []string
+	var possibleTargets []string
 	var permutations bool
 
 	switch strings.ToLower(*permutationsFlag) {
@@ -601,26 +601,26 @@ func main() {
 
 		if permutations {
 			for _, e := range targets {
-				possibleDomains = append(possibleDomains, returnPossibleDomains(e)...)
+				possibleTargets = append(possibleTargets, returnPossibleTargets(e)...)
 			}
 		} else {
-			possibleDomains = append(possibleDomains, targets...)
+			possibleTargets = append(possibleTargets, targets...)
 		}
 	} else {
 		// Treat target as a domain
 		if permutations {
 			// Perform permutations on target and scan all of them
-			possibleDomains = returnPossibleDomains(target)
+			possibleTargets = returnPossibleTargets(target)
 		} else {
 			// Only perfom a scan on the supplied target flag value
-			possibleDomains = append(possibleDomains, target)
+			possibleTargets = append(possibleTargets, target)
 		}
 	}
 
-	fmt.Printf("[+] Checking %v possible target URLs...\n", len(possibleDomains))
+	fmt.Printf("[+] Checking %v possible target URLs...\n", len(possibleTargets))
 
 	for _, selectedService := range selectedServices {
-		for _, domain := range possibleDomains {
+		for _, t := range possibleTargets {
 			for _, path := range selectedService.Request.Path {
 				var result Result
 				var targetURL string
@@ -633,7 +633,11 @@ func main() {
 				}
 
 				// Crafting URL
-				targetURL = craftTargetURL(selectedService.Request.BaseURL, path, domain)
+				if permutations {
+					targetURL = craftTargetURL(selectedService.Request.BaseURL, path, t)
+				} else {
+					targetURL = t
+				}
 
 				URL, err := url.Parse(targetURL)
 				if err != nil {
@@ -642,6 +646,7 @@ func main() {
 					} else {
 						fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping...\n", targetURL)
 					}
+
 					continue // Skip invalid URLs and move on to the next one
 				}
 
