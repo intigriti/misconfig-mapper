@@ -625,18 +625,36 @@ func main() {
 				var result Result
 				var targetURL string
 
-				limiter.Wait(context.Background())
+				_ = limiter.Wait(context.Background())
 
-				// Make sure we only request the baseURL when we're only looking if the technology exists
+				// Make sure we only request the BaseURL when we're only looking if the technology exists
 				if reqCTX.SkipChecks {
 					path = "/"
 				}
 
 				// Crafting URL
 				if permutations {
+					// Construct target URL based on template's "baseURL" variable
 					targetURL = craftTargetURL(selectedService.Request.BaseURL, path, t)
 				} else {
-					targetURL = t
+					// Normalise URI scheme and override template's baseURL
+					if !strings.HasPrefix(t, "http") {
+						t = fmt.Sprintf(`https://%v`, t)
+					}
+
+					u, err := url.Parse(t)
+					if err != nil {
+						if reqCTX.Verbose {
+							fmt.Printf("[-] Error: Failed to Craft Target URL \"%s\"... Skipping... (%v)\n", t, err)
+						} else {
+							fmt.Printf("[-] Error: Failed to Craft Target URL \"%s\"... Skipping...\n", t)
+						}
+
+						continue // Skip invalid URLs and move on to the next one
+					}
+
+					u.Path = path
+					targetURL = u.String()
 				}
 
 				URL, err := url.Parse(targetURL)
@@ -648,10 +666,6 @@ func main() {
 					}
 
 					continue // Skip invalid URLs and move on to the next one
-				}
-
-				if !permutations && (URL.Scheme == "") {
-					URL.Scheme = "https"
 				}
 
 				result.URL = URL.String()
