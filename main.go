@@ -33,9 +33,9 @@ type Service struct {
 		Body    any                 `json:"body"`
 	} `json:"request"`
 	Response struct {
-		StatusCode            int64    `json:"statusCode"`
-		DetectionFingerprints []string `json:"detectionFingerprints"`
-		Fingerprints          []string `json:"fingerprints"`
+		StatusCode            interface{} `json:"statusCode"`
+		DetectionFingerprints []string    `json:"detectionFingerprints"`
+		Fingerprints          []string    `json:"fingerprints"`
 	} `json:"response"`
 	Metadata struct {
 		Service           string   `json:"service"`
@@ -347,8 +347,18 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 		defer res.Body.Close()
 
 		var statusCodeMatched bool = false
-		if res.StatusCode == int(service.Response.StatusCode) {
-			statusCodeMatched = true
+		if _, ok := service.Response.StatusCode.([]interface{}); ok {
+			// In case multiple status codes are supplied
+			for _, c := range service.Response.StatusCode.([]interface{}) {
+				if int(c.(float64)) == res.StatusCode {
+					statusCodeMatched = true
+					break
+				}
+			}
+		} else {
+			if res.StatusCode == int(service.Response.StatusCode.(float64)) {
+				statusCodeMatched = true
+			}
 		}
 
 		var responseHeaders string = ""

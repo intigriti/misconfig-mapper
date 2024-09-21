@@ -543,5 +543,82 @@
                 "https://trailhead.salesforce.com/content/learn/modules/data_security/data_security_records"
             ]
         }
+    },
+    {
+        "id": 15,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://{TARGET}.s3.amazonaws.com",
+            "path": ["/"],
+            "body": null
+        },
+        "response": {
+            "statusCode": [
+                200,
+                403
+            ],
+            "detectionFingerprints": [
+                "<ListBucketResult",
+                "<Code>AccessDenied</Code>",
+                "<Message>Access denied.</Message>",
+                "x-amz-bucket-region"
+            ],
+            "fingerprints": [
+                "<ListBucketResult",
+                "<Name>"
+            ]
+        },
+        "metadata": {
+            "service": "aws-s3",
+            "serviceName": "AWS S3 Bucket with Misconfigured List Permissions",
+            "description": "AWS S3 Bucket can be left misconfigured and allow anyone to list files and objects potentially containing sensitive data if access permissions aren't properly enforced",
+            "reproductionSteps": [
+                "Visit the S3 Bucket API endpoint",
+                "Observe the response for any disclosed information (like private files). View the references for more information."
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/aws-s3/misconfigured-list-permissions",
+                "https://blog.intigriti.com/hacking-tools/hacking-misconfigured-aws-s3-buckets-a-complete-guide"
+            ]
+        }
+    },
+    {
+        "id": 16,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://pub-{TARGET}.r2.dev",
+            "path": ["/"],
+            "body": null
+        },
+        "response": {
+            "statusCode": [
+                200,
+                401,
+                404
+            ],
+            "detectionFingerprints": [
+                "<p id=\"error-title\">You are not authorized to view this bucket</p>",
+                "<p id=\"footer-title\">Is this your bucket?</p>",
+                "href=\"https\\:\/\/developers.cloudflare.com\/r2\/data-access\/public-buckets\/\""
+            ],
+            "fingerprints": [
+                "<h3>Object not found<\\/h3>",
+                "<p id=\"footer-title\">Is this your bucket\\?<\\/p>",
+                "href=\"https\\:\\/\\/developers.cloudflare.com\\/r2\\/data-access\\/public-buckets\\/\""
+            ]
+        },
+        "metadata": {
+            "service": "cf-r2",
+            "serviceName": "Cloudflare R2 with R2.DEV Enabled",
+            "description": "Cloudflare R2 with R2.DEV enabled can allow bad actors to view objects in buckets",
+            "reproductionSteps": [
+                "Visit the Cloudflare R2 Bucket API endpoint",
+                "Observe the response for any disclosed information (such as private files). View the references for more information."
+            ],
+            "references": [
+                "https://bugology.intigriti.io/misconfig-mapper-docs/services/cloudflare-r2/r2-dev-enabled",
+                "https://blog.intigriti.com/hacking-tools/hacking-misconfigured-cloudflare-r2-buckets-a-complete-guide"
+            ]
+        }
     }
 ]
