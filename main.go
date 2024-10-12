@@ -257,12 +257,16 @@ func returnPossibleTargets(target string) []string {
 	return possibleTargets
 }
 
-func getTemplate(id string, services []Service) []Service {
+func getTemplate(ids string, services []Service) []Service {
 	var s []Service
 
+	parsed := strings.Split(ids, ",")
+
 	for _, x := range services {
-		if (fmt.Sprintf(`%v`, x.ID) == id) || (fmt.Sprintf(`%v`, x.Metadata.Service) == id) {
-			s = append(s, x)
+		for _, i := range parsed {
+			if (fmt.Sprintf(`%v`, x.ID) == i) || (fmt.Sprintf(`%v`, x.Metadata.Service) == i) {
+				s = append(s, x)
+			}
 		}
 	}
 
@@ -481,7 +485,7 @@ func processInput(fileName string, input *[]string) {
 
 func main() {
 	targetFlag := flag.String("target", "", "Specify your target domain name or company/organization name: \"intigriti.com\" or \"intigriti\" (files are also accepted)")
-	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services.")
+	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for. For example, \"0\" for Atlassian Jira Open Signups. Use comma seperated values for multiple (i.e. \"0,1\" for two services). Use * to check for all services.")
 	skipChecksFlag := flag.String("skip-misconfiguration-checks", "false", "Only check for existing instances (and skip checks for potential security misconfigurations).")
 	permutationsFlag := flag.String("permutations", "true", "Enable permutations and look for several other keywords of your target.")
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookie: xyz...;;\")")
