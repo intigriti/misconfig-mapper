@@ -257,7 +257,7 @@ func returnPossibleTargets(target string) []string {
 	return possibleTargets
 }
 
-func getTemplate(id string, services []Service) interface{} {
+func getTemplate(id string, services []Service) []Service {
 	var s []Service
 
 	for _, x := range services {
@@ -566,17 +566,17 @@ func main() {
 		selectedServices = services
 	} else {
 		s := getTemplate(service, services)
-		if s == nil || len(s.([]Service)) < 1 {
+		if s == nil || len(s) < 1 {
 			fmt.Printf("[-] Error: Service ID \"%v\" does not match any integrated service!\n\nAvailable Services:\n", service)
 			printServices(services, reqCTX.Verbose, width)
 			return
 		}
 
 		if reqCTX.Verbose {
-			fmt.Printf("[+] %v Services selected!\n", len(s.([]Service)))
+			fmt.Printf("[+] %v Services selected!\n", len(s))
 		}
 
-		selectedServices = append(selectedServices, s.([]Service)...)
+		selectedServices = append(selectedServices, s...)
 	}
 
 	// Parse "skip-misconfiguration-checks" CLI flag
