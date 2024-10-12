@@ -60,6 +60,7 @@ type RequestContext struct {
 	Timeout      int
 	MaxRedirects int
 	Verbose      bool
+	Quiet        bool
 }
 
 /* TYPES/ */
@@ -150,8 +151,10 @@ func loadTemplates(servicesPath string) ([]Service, error) {
 }
 
 // Pull latest services from GitHub
-func updateTemplates(templatesDir, servicesPath string, update bool) *error {
-	fmt.Printf("[+] Info: Pulling latest services and saving in %v\n", servicesPath)
+func updateTemplates(templatesDir, servicesPath string, update bool, quiet bool) *error {
+	if !quiet {
+		fmt.Printf("[+] Info: Pulling latest services and saving in %v\n", servicesPath)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 7*time.Second)
 	defer cancel()
@@ -184,7 +187,9 @@ func updateTemplates(templatesDir, servicesPath string, update bool) *error {
 			}
 			defer s.Close()
 		} else {
-			fmt.Println("[+] Info: Creating templates directory...")
+			if !quiet {
+				fmt.Println("[+] Info: Creating templates directory...")
+			}
 
 			// create "templates" directory
 			_ = os.Mkdir(templatesDir, 0700)
@@ -203,7 +208,9 @@ func updateTemplates(templatesDir, servicesPath string, update bool) *error {
 		}
 	}
 
-	fmt.Println("[+] Info: Successfully pulled the latest templates!")
+	if !quiet {
+		fmt.Println("[+] Info: Successfully pulled the latest templates!")
+	}
 
 	return nil
 }
@@ -496,6 +503,7 @@ func main() {
 	templatesPath := flag.String("templates", "./templates", "Specify the templates folder location")
 	updateServicesFlag := flag.Bool("update-templates", false, "Pull the latest templates & update your current services.json file")
 	verboseFlag := flag.Bool("verbose", false, "Print verbose messages")
+	quietFlag := flag.Bool("quiet", false, "Only output positive detections")
 
 	flag.Parse()
 
@@ -509,6 +517,7 @@ func main() {
 		Timeout:      *timeoutFlag,
 		MaxRedirects: *maxRedirectsFlag,
 		Verbose:      *verboseFlag,
+		Quiet:        *quietFlag,
 	}
 
 	// Derrive terminal width
@@ -522,7 +531,7 @@ func main() {
 		// If "services.json" already exists, update the templates
 		update := isFile(serviceFilePath)
 
-		err := updateTemplates(*templatesPath, serviceFilePath, update)
+		err := updateTemplates(*templatesPath, serviceFilePath, update, reqCTX.Quiet)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "[-] Error: Failed to update templates! (%v)\n", *err)
 			os.Exit(1)
@@ -535,7 +544,7 @@ func main() {
 	if err != nil {
 		fmt.Fprint(os.Stderr, "[-] Error: Failed to load services!")
 
-		err := updateTemplates(*templatesPath, serviceFilePath, false)
+		err := updateTemplates(*templatesPath, serviceFilePath, false, reqCTX.Quiet)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "[-] Error: Failed to pull latest services! (%v)\n", *err)
 			os.Exit(1)
@@ -631,7 +640,9 @@ func main() {
 		}
 	}
 
-	fmt.Printf("[+] Checking %v possible target URLs...\n", len(possibleTargets))
+	if reqCTX.Verbose {
+		fmt.Printf("[+] Checking %v possible target URLs...\n", len(possibleTargets))
+	}
 
 	for _, selectedService := range selectedServices {
 		for _, t := range possibleTargets {
@@ -694,6 +705,10 @@ func main() {
 					handleResult(&result, &reqCTX, width)
 					break
 				} else {
+					if reqCTX.Quiet {
+						continue
+					}
+
 					if !result.Exists {
 						if reqCTX.SkipChecks {
 							fmt.Printf("[-] No %s instance found (%s)\n", result.Service.Metadata.ServiceName, result.URL)
