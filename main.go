@@ -47,11 +47,11 @@ type Service struct {
 }
 
 type Result struct {
-	URL        string  // Result URL
-	Exists     bool    // Used to report back in case the instance exists
-	Vulnerable bool    // Used to report back in case the instance is vulnerable
-	ServiceId  string  // Service ID
-	Service    Service // Service struct
+	URL        string  `json:"url"`        // Result URL
+	Exists     bool    `json:"exists"`     // Used to report back in case the instance exists
+	Vulnerable bool    `json:"vulnerable"` // Used to report back in case the instance is vulnerable
+	ServiceId  string  `json:"serviceid"`  // Service ID
+	Service    Service `json:"service"`    // Service struct
 }
 
 type RequestContext struct {
@@ -61,6 +61,7 @@ type RequestContext struct {
 	MaxRedirects int
 	Verbose      bool
 	Quiet        bool
+	JSONLines    bool
 }
 
 /* TYPES/ */
@@ -415,6 +416,18 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 }
 
 func handleResult(result *Result, reqCTX *RequestContext, width int) {
+
+	if reqCTX.JSONLines {
+		d, err := json.Marshal(result)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to marshal result %v", err)
+			return
+		}
+
+		fmt.Println(string(d))
+		return
+	}
+
 	fmt.Println(strings.Repeat("-", width))
 
 	if reqCTX.SkipChecks {
@@ -502,6 +515,7 @@ func main() {
 	listServicesFlag := flag.Bool("list-services", false, "Print all services with their associated IDs")
 	templatesPath := flag.String("templates", "./templates", "Specify the templates folder location")
 	updateServicesFlag := flag.Bool("update-templates", false, "Pull the latest templates & update your current services.json file")
+	jsonLinesFlag := flag.Bool("output-json", false, "Print json lines instead")
 	verboseFlag := flag.Bool("verbose", false, "Print verbose messages")
 	quietFlag := flag.Bool("quiet", false, "Only output positive detections")
 
@@ -518,6 +532,7 @@ func main() {
 		MaxRedirects: *maxRedirectsFlag,
 		Verbose:      *verboseFlag,
 		Quiet:        *quietFlag,
+		JSONLines:    *jsonLinesFlag,
 	}
 
 	// Derrive terminal width
