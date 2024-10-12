@@ -135,14 +135,14 @@ func loadTemplates(servicesPath string) ([]Service, error) {
 
 	file, err := os.Open(servicesPath)
 	if err != nil {
-		fmt.Printf("ERROR: Failed opening file '%s': %s\n", servicesPath, err)
+		fmt.Fprintf(os.Stderr, "ERROR: Failed opening file '%s': %s\n", servicesPath, err)
 		return services, err
 	}
 	defer file.Close()
 
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&services); err != nil {
-		fmt.Println("ERROR: Failed decoding JSON file:", err)
+		fmt.Fprint(os.Stderr, "ERROR: Failed decoding JSON file:", err)
 		return services, err
 	}
 
@@ -310,15 +310,15 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 	req, err := http.NewRequestWithContext(ctx, fmt.Sprintf(`%v`, service.Request.Method), result.URL, requestBody)
 	if err != nil {
 		if r.Verbose {
-			fmt.Printf("[-] Error: Failed to request %s (%v)\n", result.URL, err)
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to request %s (%v)\n", result.URL, err)
 		} else {
-			fmt.Printf("[-] Error: Failed to request %s\n", result.URL)
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to request %s\n", result.URL)
 		}
 		result.Vulnerable = false
 	}
 
 	if req == nil {
-		fmt.Printf("[-] Error: HTTP Request is empty")
+		fmt.Fprint(os.Stderr, "[-] Error: HTTP Request is empty")
 		return
 	}
 
@@ -340,9 +340,9 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 	res, err := client.Do(req)
 	if err != nil {
 		if r.Verbose {
-			fmt.Printf("[-] Error: Failed to read response for %s (%v)\n", result.URL, err)
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to read response for %s (%v)\n", result.URL, err)
 		} else {
-			fmt.Printf("[-] Error: Failed to read response for %s\n", result.URL)
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to read response for %s\n", result.URL)
 		}
 		result.Exists = false
 		result.Vulnerable = false
@@ -375,9 +375,9 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 		body, err := io.ReadAll(res.Body)
 		if err != nil {
 			if r.Verbose {
-				fmt.Printf("[-] Error: Failed to read response body for %s (%v)\n", result.URL, err)
+				fmt.Fprintf(os.Stderr, "[-] Error: Failed to read response body for %s (%v)\n", result.URL, err)
 			} else {
-				fmt.Printf("[-] Error: Failed to read response body for %s\n", result.URL)
+				fmt.Fprintf(os.Stderr, "[-] Error: Failed to read response body for %s\n", result.URL)
 			}
 		}
 
@@ -386,7 +386,7 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 
 			re, err := regexp.Compile(expr)
 			if err != nil {
-				fmt.Printf("[-] Error: Invalid detection expression supplied for service \"%v\" (error: %v)!\n", service.Metadata.ServiceName, err)
+				fmt.Fprintf(os.Stderr, "[-] Error: Invalid detection expression supplied for service \"%v\" (error: %v)!\n", service.Metadata.ServiceName, err)
 				return
 			}
 
@@ -399,7 +399,7 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 
 		re, err := regexp.Compile(expr)
 		if err != nil {
-			fmt.Printf("[-] Error: Invalid expression supplied for service \"%v\" (error: %v)!\n", service.Metadata.ServiceName, err)
+			fmt.Fprintf(os.Stderr, "[-] Error: Invalid expression supplied for service \"%v\" (error: %v)!\n", service.Metadata.ServiceName, err)
 			return
 		}
 
@@ -466,7 +466,7 @@ func isFile(path string) bool {
 func processInput(fileName string, input *[]string) {
 	file, err := os.Open(fmt.Sprintf(`%v`, fileName))
 	if err != nil {
-		fmt.Printf("[-] Error: Failed to open file! (%v)", err)
+		fmt.Fprintf(os.Stderr, "[-] Error: Failed to open file! (%v)", err)
 		return
 	}
 	defer file.Close()
@@ -478,7 +478,7 @@ func processInput(fileName string, input *[]string) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Printf("[-] Error: Failed to read file! (%v)", err)
+		fmt.Fprintf(os.Stderr, "[-] Error: Failed to read file! (%v)", err)
 		return
 	}
 }
@@ -524,7 +524,7 @@ func main() {
 
 		err := updateTemplates(*templatesPath, serviceFilePath, update)
 		if err != nil {
-			fmt.Printf("[-] Error: Failed to update templates! (%v)\n", *err)
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to update templates! (%v)\n", *err)
 			os.Exit(1)
 		}
 
@@ -533,17 +533,17 @@ func main() {
 
 	services, err := loadTemplates(serviceFilePath)
 	if err != nil {
-		fmt.Println("[-] Error: Failed to load services!")
+		fmt.Fprint(os.Stderr, "[-] Error: Failed to load services!")
 
 		err := updateTemplates(*templatesPath, serviceFilePath, false)
 		if err != nil {
-			fmt.Printf("[-] Error: Failed to pull latest services! (%v)\n", *err)
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to pull latest services! (%v)\n", *err)
 			os.Exit(1)
 		}
 
 		// Reload new templates
 		if _, err2 := loadTemplates(serviceFilePath); err2 != nil {
-			fmt.Println("[-] Error: Failed to load services: " + err2.Error())
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to load services: "+err2.Error())
 			os.Exit(1)
 		}
 	}
@@ -571,7 +571,7 @@ func main() {
 	} else {
 		s := getTemplate(service, services)
 		if s == nil || len(s) < 1 {
-			fmt.Printf("[-] Error: Service ID \"%v\" does not match any integrated service!\n\nAvailable Services:\n", service)
+			fmt.Fprintf(os.Stderr, "[-] Error: Service ID \"%v\" does not match any integrated service!\n\nAvailable Services:\n", service)
 			printServices(services, reqCTX.Verbose, width)
 			return
 		}
@@ -591,7 +591,7 @@ func main() {
 		reqCTX.SkipChecks = false
 	default:
 		reqCTX.SkipChecks = false
-		fmt.Printf("[-] Warning: Invalid skipChecks flag value supplied: \"%v\"\n", *skipChecksFlag)
+		fmt.Fprintf(os.Stderr, "[-] Warning: Invalid skipChecks flag value supplied: \"%v\"\n", *skipChecksFlag)
 	}
 
 	// Parse "permutations" CLI flag
@@ -605,7 +605,7 @@ func main() {
 		permutations = false
 	default:
 		permutations = false
-		fmt.Printf("[-] Warning: Invalid permutations flag value supplied: \"%v\"\n", *permutationsFlag)
+		fmt.Fprintf(os.Stderr, "[-] Warning: Invalid permutations flag value supplied: \"%v\"\n", *permutationsFlag)
 	}
 
 	if isFile(target) {
@@ -659,9 +659,9 @@ func main() {
 					u, err := url.Parse(t)
 					if err != nil {
 						if reqCTX.Verbose {
-							fmt.Printf("[-] Error: Failed to Craft Target URL \"%s\"... Skipping... (%v)\n", t, err)
+							fmt.Fprintf(os.Stderr, "[-] Error: Failed to Craft Target URL \"%s\"... Skipping... (%v)\n", t, err)
 						} else {
-							fmt.Printf("[-] Error: Failed to Craft Target URL \"%s\"... Skipping...\n", t)
+							fmt.Fprintf(os.Stderr, "[-] Error: Failed to Craft Target URL \"%s\"... Skipping...\n", t)
 						}
 
 						continue // Skip invalid URLs and move on to the next one
@@ -674,9 +674,9 @@ func main() {
 				URL, err := url.Parse(targetURL)
 				if err != nil {
 					if reqCTX.Verbose {
-						fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping... (%v)\n", targetURL, err)
+						fmt.Fprintf(os.Stderr, "[-] Error: Invalid Target URL \"%s\"... Skipping... (%v)\n", targetURL, err)
 					} else {
-						fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping...\n", targetURL)
+						fmt.Fprintf(os.Stderr, "[-] Error: Invalid Target URL \"%s\"... Skipping...\n", targetURL)
 					}
 
 					continue // Skip invalid URLs and move on to the next one
