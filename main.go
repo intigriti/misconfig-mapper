@@ -47,11 +47,11 @@ type Service struct {
 }
 
 type Result struct {
-	URL        string  // Result URL
-	Exists     bool    // Used to report back in case the instance exists
-	Vulnerable bool    // Used to report back in case the instance is vulnerable
-	ServiceId  string  // Service ID
-	Service    Service // Service struct
+	URL        string  `json:"url"`        // Result URL
+	Exists     bool    `json:"exists"`     // Used to report back in case the instance exists
+	Vulnerable bool    `json:"vulnerable"` // Used to report back in case the instance is vulnerable
+	ServiceId  string  `json:"serviceid"`  // Service ID
+	Service    Service `json:"service"`    // Service struct
 }
 
 type RequestContext struct {
@@ -60,6 +60,8 @@ type RequestContext struct {
 	Timeout      int
 	MaxRedirects int
 	Verbose      bool
+	Quiet        bool
+	JSONLines    bool
 }
 
 /* TYPES/ */
@@ -135,14 +137,14 @@ func loadTemplates(servicesPath string) ([]Service, error) {
 
 	file, err := os.Open(servicesPath)
 	if err != nil {
-		fmt.Printf("ERROR: Failed opening file '%s': %s\n", servicesPath, err)
+		fmt.Fprintf(os.Stderr, "ERROR: Failed opening file '%s': %s\n", servicesPath, err)
 		return services, err
 	}
 	defer file.Close()
 
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&services); err != nil {
-		fmt.Println("ERROR: Failed decoding JSON file:", err)
+		fmt.Fprint(os.Stderr, "ERROR: Failed decoding JSON file:", err)
 		return services, err
 	}
 
@@ -150,8 +152,10 @@ func loadTemplates(servicesPath string) ([]Service, error) {
 }
 
 // Pull latest services from GitHub
-func updateTemplates(templatesDir, servicesPath string, update bool) *error {
-	fmt.Printf("[+] Info: Pulling latest services and saving in %v\n", servicesPath)
+func updateTemplates(templatesDir, servicesPath string, update bool, quiet bool) *error {
+	if !quiet {
+		fmt.Printf("[+] Info: Pulling latest services and saving in %v\n", servicesPath)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 7*time.Second)
 	defer cancel()
@@ -184,7 +188,9 @@ func updateTemplates(templatesDir, servicesPath string, update bool) *error {
 			}
 			defer s.Close()
 		} else {
-			fmt.Println("[+] Info: Creating templates directory...")
+			if !quiet {
+				fmt.Println("[+] Info: Creating templates directory...")
+			}
 
 			// create "templates" directory
 			_ = os.Mkdir(templatesDir, 0700)
@@ -203,7 +209,9 @@ func updateTemplates(templatesDir, servicesPath string, update bool) *error {
 		}
 	}
 
-	fmt.Println("[+] Info: Successfully pulled the latest templates!")
+	if !quiet {
+		fmt.Println("[+] Info: Successfully pulled the latest templates!")
+	}
 
 	return nil
 }
@@ -257,12 +265,16 @@ func returnPossibleTargets(target string) []string {
 	return possibleTargets
 }
 
-func getTemplate(id string, services []Service) interface{} {
+func getTemplate(ids string, services []Service) []Service {
 	var s []Service
 
+	parsed := strings.Split(ids, ",")
+
 	for _, x := range services {
-		if (fmt.Sprintf(`%v`, x.ID) == id) || (fmt.Sprintf(`%v`, x.Metadata.Service) == id) {
-			s = append(s, x)
+		for _, i := range parsed {
+			if (fmt.Sprintf(`%v`, x.ID) == i) || (fmt.Sprintf(`%v`, x.Metadata.Service) == i) {
+				s = append(s, x)
+			}
 		}
 	}
 
@@ -306,15 +318,15 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 	req, err := http.NewRequestWithContext(ctx, fmt.Sprintf(`%v`, service.Request.Method), result.URL, requestBody)
 	if err != nil {
 		if r.Verbose {
-			fmt.Printf("[-] Error: Failed to request %s (%v)\n", result.URL, err)
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to request %s (%v)\n", result.URL, err)
 		} else {
-			fmt.Printf("[-] Error: Failed to request %s\n", result.URL)
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to request %s\n", result.URL)
 		}
 		result.Vulnerable = false
 	}
 
 	if req == nil {
-		fmt.Printf("[-] Error: HTTP Request is empty")
+		fmt.Fprint(os.Stderr, "[-] Error: HTTP Request is empty")
 		return
 	}
 
@@ -336,9 +348,9 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 	res, err := client.Do(req)
 	if err != nil {
 		if r.Verbose {
-			fmt.Printf("[-] Error: Failed to read response for %s (%v)\n", result.URL, err)
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to read response for %s (%v)\n", result.URL, err)
 		} else {
-			fmt.Printf("[-] Error: Failed to read response for %s\n", result.URL)
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to read response for %s\n", result.URL)
 		}
 		result.Exists = false
 		result.Vulnerable = false
@@ -371,9 +383,9 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 		body, err := io.ReadAll(res.Body)
 		if err != nil {
 			if r.Verbose {
-				fmt.Printf("[-] Error: Failed to read response body for %s (%v)\n", result.URL, err)
+				fmt.Fprintf(os.Stderr, "[-] Error: Failed to read response body for %s (%v)\n", result.URL, err)
 			} else {
-				fmt.Printf("[-] Error: Failed to read response body for %s\n", result.URL)
+				fmt.Fprintf(os.Stderr, "[-] Error: Failed to read response body for %s\n", result.URL)
 			}
 		}
 
@@ -382,7 +394,7 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 
 			re, err := regexp.Compile(expr)
 			if err != nil {
-				fmt.Printf("[-] Error: Invalid detection expression supplied for service \"%v\" (error: %v)!\n", service.Metadata.ServiceName, err)
+				fmt.Fprintf(os.Stderr, "[-] Error: Invalid detection expression supplied for service \"%v\" (error: %v)!\n", service.Metadata.ServiceName, err)
 				return
 			}
 
@@ -395,7 +407,7 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 
 		re, err := regexp.Compile(expr)
 		if err != nil {
-			fmt.Printf("[-] Error: Invalid expression supplied for service \"%v\" (error: %v)!\n", service.Metadata.ServiceName, err)
+			fmt.Fprintf(os.Stderr, "[-] Error: Invalid expression supplied for service \"%v\" (error: %v)!\n", service.Metadata.ServiceName, err)
 			return
 		}
 
@@ -404,6 +416,18 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 }
 
 func handleResult(result *Result, reqCTX *RequestContext, width int) {
+
+	if reqCTX.JSONLines {
+		d, err := json.Marshal(result)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to marshal result %v", err)
+			return
+		}
+
+		fmt.Println(string(d))
+		return
+	}
+
 	fmt.Println(strings.Repeat("-", width))
 
 	if reqCTX.SkipChecks {
@@ -462,7 +486,7 @@ func isFile(path string) bool {
 func processInput(fileName string, input *[]string) {
 	file, err := os.Open(fmt.Sprintf(`%v`, fileName))
 	if err != nil {
-		fmt.Printf("[-] Error: Failed to open file! (%v)", err)
+		fmt.Fprintf(os.Stderr, "[-] Error: Failed to open file! (%v)", err)
 		return
 	}
 	defer file.Close()
@@ -474,14 +498,14 @@ func processInput(fileName string, input *[]string) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Printf("[-] Error: Failed to read file! (%v)", err)
+		fmt.Fprintf(os.Stderr, "[-] Error: Failed to read file! (%v)", err)
 		return
 	}
 }
 
 func main() {
 	targetFlag := flag.String("target", "", "Specify your target domain name or company/organization name: \"intigriti.com\" or \"intigriti\" (files are also accepted)")
-	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for: \"0\" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services.")
+	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for. For example, \"0\" for Atlassian Jira Open Signups. Use comma seperated values for multiple (i.e. \"0,1\" for two services). Use * to check for all services.")
 	skipChecksFlag := flag.String("skip-misconfiguration-checks", "false", "Only check for existing instances (and skip checks for potential security misconfigurations).")
 	permutationsFlag := flag.String("permutations", "true", "Enable permutations and look for several other keywords of your target.")
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookie: xyz...;;\")")
@@ -491,7 +515,9 @@ func main() {
 	listServicesFlag := flag.Bool("list-services", false, "Print all services with their associated IDs")
 	templatesPath := flag.String("templates", "./templates", "Specify the templates folder location")
 	updateServicesFlag := flag.Bool("update-templates", false, "Pull the latest templates & update your current services.json file")
+	jsonLinesFlag := flag.Bool("output-json", false, "Print json lines instead")
 	verboseFlag := flag.Bool("verbose", false, "Print verbose messages")
+	quietFlag := flag.Bool("quiet", false, "Only output positive detections")
 
 	flag.Parse()
 
@@ -505,6 +531,8 @@ func main() {
 		Timeout:      *timeoutFlag,
 		MaxRedirects: *maxRedirectsFlag,
 		Verbose:      *verboseFlag,
+		Quiet:        *quietFlag,
+		JSONLines:    *jsonLinesFlag,
 	}
 
 	// Derrive terminal width
@@ -518,9 +546,9 @@ func main() {
 		// If "services.json" already exists, update the templates
 		update := isFile(serviceFilePath)
 
-		err := updateTemplates(*templatesPath, serviceFilePath, update)
+		err := updateTemplates(*templatesPath, serviceFilePath, update, reqCTX.Quiet)
 		if err != nil {
-			fmt.Printf("[-] Error: Failed to update templates! (%v)\n", *err)
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to update templates! (%v)\n", *err)
 			os.Exit(1)
 		}
 
@@ -529,17 +557,17 @@ func main() {
 
 	services, err := loadTemplates(serviceFilePath)
 	if err != nil {
-		fmt.Println("[-] Error: Failed to load services!")
+		fmt.Fprint(os.Stderr, "[-] Error: Failed to load services!")
 
-		err := updateTemplates(*templatesPath, serviceFilePath, false)
+		err := updateTemplates(*templatesPath, serviceFilePath, false, reqCTX.Quiet)
 		if err != nil {
-			fmt.Printf("[-] Error: Failed to pull latest services! (%v)\n", *err)
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to pull latest services! (%v)\n", *err)
 			os.Exit(1)
 		}
 
 		// Reload new templates
 		if _, err2 := loadTemplates(serviceFilePath); err2 != nil {
-			fmt.Println("[-] Error: Failed to load services: " + err2.Error())
+			fmt.Fprintf(os.Stderr, "[-] Error: Failed to load services: "+err2.Error())
 			os.Exit(1)
 		}
 	}
@@ -566,17 +594,17 @@ func main() {
 		selectedServices = services
 	} else {
 		s := getTemplate(service, services)
-		if s == nil || len(s.([]Service)) < 1 {
-			fmt.Printf("[-] Error: Service ID \"%v\" does not match any integrated service!\n\nAvailable Services:\n", service)
+		if s == nil || len(s) < 1 {
+			fmt.Fprintf(os.Stderr, "[-] Error: Service ID \"%v\" does not match any integrated service!\n\nAvailable Services:\n", service)
 			printServices(services, reqCTX.Verbose, width)
 			return
 		}
 
 		if reqCTX.Verbose {
-			fmt.Printf("[+] %v Services selected!\n", len(s.([]Service)))
+			fmt.Printf("[+] %v Services selected!\n", len(s))
 		}
 
-		selectedServices = append(selectedServices, s.([]Service)...)
+		selectedServices = append(selectedServices, s...)
 	}
 
 	// Parse "skip-misconfiguration-checks" CLI flag
@@ -587,7 +615,7 @@ func main() {
 		reqCTX.SkipChecks = false
 	default:
 		reqCTX.SkipChecks = false
-		fmt.Printf("[-] Warning: Invalid skipChecks flag value supplied: \"%v\"\n", *skipChecksFlag)
+		fmt.Fprintf(os.Stderr, "[-] Warning: Invalid skipChecks flag value supplied: \"%v\"\n", *skipChecksFlag)
 	}
 
 	// Parse "permutations" CLI flag
@@ -601,7 +629,7 @@ func main() {
 		permutations = false
 	default:
 		permutations = false
-		fmt.Printf("[-] Warning: Invalid permutations flag value supplied: \"%v\"\n", *permutationsFlag)
+		fmt.Fprintf(os.Stderr, "[-] Warning: Invalid permutations flag value supplied: \"%v\"\n", *permutationsFlag)
 	}
 
 	if isFile(target) {
@@ -627,7 +655,9 @@ func main() {
 		}
 	}
 
-	fmt.Printf("[+] Checking %v possible target URLs...\n", len(possibleTargets))
+	if reqCTX.Verbose {
+		fmt.Printf("[+] Checking %v possible target URLs...\n", len(possibleTargets))
+	}
 
 	for _, selectedService := range selectedServices {
 		for _, t := range possibleTargets {
@@ -655,9 +685,9 @@ func main() {
 					u, err := url.Parse(t)
 					if err != nil {
 						if reqCTX.Verbose {
-							fmt.Printf("[-] Error: Failed to Craft Target URL \"%s\"... Skipping... (%v)\n", t, err)
+							fmt.Fprintf(os.Stderr, "[-] Error: Failed to Craft Target URL \"%s\"... Skipping... (%v)\n", t, err)
 						} else {
-							fmt.Printf("[-] Error: Failed to Craft Target URL \"%s\"... Skipping...\n", t)
+							fmt.Fprintf(os.Stderr, "[-] Error: Failed to Craft Target URL \"%s\"... Skipping...\n", t)
 						}
 
 						continue // Skip invalid URLs and move on to the next one
@@ -670,9 +700,9 @@ func main() {
 				URL, err := url.Parse(targetURL)
 				if err != nil {
 					if reqCTX.Verbose {
-						fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping... (%v)\n", targetURL, err)
+						fmt.Fprintf(os.Stderr, "[-] Error: Invalid Target URL \"%s\"... Skipping... (%v)\n", targetURL, err)
 					} else {
-						fmt.Printf("[-] Error: Invalid Target URL \"%s\"... Skipping...\n", targetURL)
+						fmt.Fprintf(os.Stderr, "[-] Error: Invalid Target URL \"%s\"... Skipping...\n", targetURL)
 					}
 
 					continue // Skip invalid URLs and move on to the next one
@@ -690,6 +720,10 @@ func main() {
 					handleResult(&result, &reqCTX, width)
 					break
 				} else {
+					if reqCTX.Quiet {
+						continue
+					}
+
 					if !result.Exists {
 						if reqCTX.SkipChecks {
 							fmt.Printf("[-] No %s instance found (%s)\n", result.Service.Metadata.ServiceName, result.URL)
