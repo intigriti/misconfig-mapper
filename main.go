@@ -504,10 +504,11 @@ func processInput(fileName string, input *[]string) {
 }
 
 func main() {
-	targetFlag := flag.String("target", "", "Specify your target domain name or company/organization name: \"intigriti.com\" or \"intigriti\" (files are also accepted)")
+	targetFlag := flag.String("target", "", "Specify your target company/organization name: \"intigriti\" (files are also accepted). If the target is a domain, add -as-domain")
+	asDomainFlag := flag.String("as-domain", "false", "Treat the target as if its a domain. This flag cannot be used with -permutations.")
 	serviceFlag := flag.String("service", "0", "Specify the service ID you'd like to check for. For example, \"0\" for Atlassian Jira Open Signups. Use comma seperated values for multiple (i.e. \"0,1\" for two services). Use * to check for all services.")
 	skipChecksFlag := flag.String("skip-misconfiguration-checks", "false", "Only check for existing instances (and skip checks for potential security misconfigurations).")
-	permutationsFlag := flag.String("permutations", "true", "Enable permutations and look for several other keywords of your target.")
+	permutationsFlag := flag.String("permutations", "true", "Enable permutations and look for several other keywords of your target. This flag cannot be used with -as-domain.")
 	requestHeadersFlag := flag.String("headers", "", "Specify request headers to send with requests (separate each header with a double semi-colon: \"User-Agent: xyz;; Cookie: xyz...;;\")")
 	delayFlag := flag.Int("delay", 0, "Specify a delay between each request sent in milliseconds to enforce a rate limit.")
 	timeoutFlag := flag.Int("timeout", 7000, "Specify a timeout for each request sent in milliseconds.")
@@ -621,6 +622,7 @@ func main() {
 	// Parse "permutations" CLI flag
 	var possibleTargets []string
 	var permutations bool
+	var asDomain bool
 
 	switch strings.ToLower(*permutationsFlag) {
 	case "y", "yes", "true", "on", "1", "enable":
@@ -630,6 +632,21 @@ func main() {
 	default:
 		permutations = false
 		fmt.Fprintf(os.Stderr, "[-] Warning: Invalid permutations flag value supplied: \"%v\"\n", *permutationsFlag)
+	}
+
+	switch strings.ToLower(*asDomainFlag) {
+	case "y", "yes", "true", "on", "1", "enable":
+		asDomain = true
+	case "", "n", "no", "false", "off", "0", "disable":
+		asDomain = false
+	default:
+		asDomain = false
+		fmt.Fprintf(os.Stderr, "[-] Warning: Invalid as-domain flag value supplied: \"%v\"\n", *asDomainFlag)
+	}
+
+	if permutations && asDomain {
+		fmt.Fprintf(os.Stderr, "Cannot set both -as-domain and -permutations\n")
+		return
 	}
 
 	if isFile(target) {
@@ -673,7 +690,7 @@ func main() {
 				}
 
 				// Crafting URL
-				if permutations {
+				if permutations || !asDomain {
 					// Construct target URL based on template's "baseURL" variable
 					targetURL = craftTargetURL(selectedService.Request.BaseURL, path, t)
 				} else {
