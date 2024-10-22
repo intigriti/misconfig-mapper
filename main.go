@@ -403,15 +403,23 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 			return
 		}
 
-		expr := parseRegex(service.Response.Fingerprints) // Transform array into regex pattern
+       		expr := parseRegex(service.Response.Fingerprints) // Transform array into regex pattern
 
-		re, err := regexp.Compile(expr)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "[-] Error: Invalid expression supplied for service \"%v\" (error: %v)!\n", service.Metadata.ServiceName, err)
-			return
-		}
+         	re, err := regexp.Compile(expr)
+         	if err != nil {
+             		fmt.Fprintf(os.Stderr, "[-] Error: Invalid expression supplied for service \"%v\" (error: %v)!\n", service.Metadata.ServiceName, err)
+             		return
+         	}
 
-		result.Vulnerable = (re.MatchString(fmt.Sprintf(`%v %v`, responseHeaders, string(body))) && statusCodeMatched)
+         	responseContent := fmt.Sprintf(`%v %v`, responseHeaders, string(body))
+         	// Check if workspace is deleted for Slack
+         	if service.Metadata.ServiceName == "Slack" && strings.Contains(responseContent, "This workspace has been deleted") ||
+		strings.Contains(responseContent, "This workspace has been suspended")) {
+             	result.Vulnerable = false
+             	return
+         	}
+
+         	result.Vulnerable = (re.MatchString(responseContent) && statusCodeMatched)
 	}
 }
 
