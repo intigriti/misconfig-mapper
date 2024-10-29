@@ -83,6 +83,11 @@
                 "src=\"https://a.slack-edge.com",
                 "<title>Slack</title>",
                 "aria-label=\"Slack homepage\""
+            ],
+            "exclusionPatterns": [
+                "This workspace has been deleted",
+                "This workspace has been suspended",
+                "This workspace is no longer available"
             ]
         },
         "metadata": {

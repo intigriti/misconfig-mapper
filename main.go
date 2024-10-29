@@ -36,6 +36,7 @@ type Service struct {
 		StatusCode            interface{} `json:"statusCode"`
 		DetectionFingerprints []string    `json:"detectionFingerprints"`
 		Fingerprints          []string    `json:"fingerprints"`
+		ExclusionPatterns     []string    `json:"exclusionPatterns,omitempty"`
 	} `json:"response"`
 	Metadata struct {
 		Service           string   `json:"service"`
@@ -80,7 +81,8 @@ type RequestContext struct {
 			"response": {
 				"statusCode":				int64,
 				"detectionFingerprints":	[]string,
-				"fingerprints":				[]string
+				"fingerprints":				[]string,
+				"exclusionPatterns":		[]string
 			},
 			"metadata": {
 				"service":					string,
@@ -386,6 +388,26 @@ func checkResponse(result *Result, service *Service, r *RequestContext) {
 				fmt.Fprintf(os.Stderr, "[-] Error: Failed to read response body for %s (%v)\n", result.URL, err)
 			} else {
 				fmt.Fprintf(os.Stderr, "[-] Error: Failed to read response body for %s\n", result.URL)
+			}
+		}
+
+		// Check exclusion patterns first
+		if len(service.Response.ExclusionPatterns) > 0 {
+			exclusionExpr := parseRegex(service.Response.ExclusionPatterns)
+			exclusionRe, err := regexp.Compile(exclusionExpr)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "[-] Error: Invalid exclusion pattern supplied for service \"%v\" (error: %v)!\n", service.Metadata.ServiceName, err)
+				return
+			}
+
+			// If any exclusion pattern matches, consider this a false positive
+			if exclusionRe.MatchString(string(body)) {
+				if r.Verbose {
+					fmt.Printf("[-] Info: Excluded %s due to matching exclusion pattern\n", result.URL)
+				}
+				result.Exists = false
+				result.Vulnerable = false
+				return
 			}
 		}
 
