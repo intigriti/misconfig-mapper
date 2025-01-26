@@ -625,5 +625,37 @@
                 "https://blog.intigriti.com/hacking-tools/hacking-misconfigured-cloudflare-r2-buckets-a-complete-guide"
             ]
         }
+    },
+    {
+        "id": 17,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://dev.azure.com/{TARGET}",
+            "path": [
+                "/"
+            ],
+            "body": null
+        },
+        "response": {
+            "statusCode": 203,
+            "detectionFingerprints": [
+                "Azure DevOps Services | Sign In"
+            ],
+            "fingerprints": [
+                "Azure DevOps Services | Sign In"
+            ]
+        },
+        "metadata": {
+            "service": "azuredevops",
+            "serviceName": "Azure DevOps",
+            "description": "Azure DevOps service",
+            "reproductionSteps": [
+                "Visit the URL"
+            ],
+            "references": [
+                "https://github.com/synacktiv/nord-stream",
+                "https://www.synacktiv.com/publications/cicd-secrets-extraction-tips-and-tricks"
+            ]
+        }
     }
 ]
