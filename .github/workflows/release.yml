@@ -61,7 +61,7 @@ jobs:
       if: steps.semrel.outputs.version != ''
     -
       name: Release
-      uses: goreleaser/goreleaser-action@v6.1.0
+      uses: goreleaser/goreleaser-action@v6.2.1
       if: steps.semrel.outputs.version != ''
       with:
         version: latest
