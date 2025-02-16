@@ -185,7 +185,6 @@ func updateTemplates(templatesDir, servicesPath string, update bool, quiet bool)
 		if update {
 			s, err = os.OpenFile(servicesPath, os.O_EXCL|os.O_WRONLY, 0644)
 			if err != nil {
-				fmt.Println(1, err)
 				return &err
 			}
 			defer s.Close()

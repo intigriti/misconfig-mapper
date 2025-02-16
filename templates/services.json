@@ -222,7 +222,7 @@
         "request": {
             "method": "GET",
             "baseURL": "https://jenkins.{TARGET}",
-            "path": ["/console"],
+            "path": ["/script", "/jenkins/script"],
             "body": null
         },
         "response": {
@@ -230,7 +230,8 @@
             "detectionFingerprints": [
                 "Authentication required",
                 "You are authenticated as:",
-                "Groups that you are in:"
+                "Groups that you are in:",
+                "<title>Dashboard - Jenkins</title>"
             ],
             "fingerprints": ["Script Console", "Groovy Script"]
         },
