@@ -35,7 +35,7 @@ If you want to build your own instance from source, ensure you have the latest v
 
 ```bash
 $ go version
-  go version go1.21.5 linux/amd64
+  go version go1.24.0 linux/amd64
 ```
 
 1. Clone this repository:
@@ -66,7 +66,7 @@ _misconfig_mapper_autocomplete()
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="-target -service -permutations -skip-misconfiguration-checks -list-services -max-redirects -headers -delay -timeout -update-templates -verbose"
+    opts="-as-domain string -delay -headers -list-services -list-templates -max-redirects -skip-ssl -output-json -permutations -service -skip-misconfiguration-checks -target -templates -timeout -update-templates -verbose"
 
     if [[ ${cur} == -* ]] ; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -84,7 +84,7 @@ complete -F _misconfig_mapper_autocomplete misconfig-mapper
 #compdef misconfig-mapper
 
 _auto_completion_misconfig_mapper() {
-    local -a options=("-target" "-service" "-permutations" "-skip-misconfiguration-checks" "-list-services" "-max-redirects" "-headers" "-delay" "-timeout" "-update-templates" "-verbose")
+    local -a options=("-as-domain" "string" "-delay" "-headers" "-list-services" "-list-templates" "-max-redirects" "-skip-ssl" "-output-json" "-permutations" "-service" "-skip-misconfiguration-checks" "-target" "-templates" "-timeout" "-update-templates" "-verbose")
 
     _arguments \
         '*: :->args' \
@@ -158,30 +158,38 @@ Additionally, you can pass request headers using the `-headers` flag to comply w
 
 ```
 Usage of ./misconfig-mapper:
+  -as-domain string
+    	Treat the target as if its a domain. This flag cannot be used with -permutations. (default "false")
   -delay int
     	Specify a delay between each request sent in milliseconds to enforce a rate limit.
   -headers string
     	Specify request headers to send with requests (separate each header with a double semi-colon: "User-Agent: xyz;; Cookie: xyz...;;")
   -list-services
     	Print all services with their associated IDs
+  -list-templates
+    	Print all services with their associated IDs (alias for -list-services)
   -max-redirects int
     	Specify the max amount of redirects to follow. (default 5)
+  -output-json
+    	Format output in JSON
   -permutations string
-    	Enable permutations and look for several other keywords of your target. (default "true")
+    	Enable permutations and look for several other keywords of your target. This flag cannot be used with -as-domain. (default "true")
   -service string
-    	Specify the service ID you'd like to check for: "0" for Atlassian Jira Open Signups. Wildcards are also accepted to check for all services. (default "0")
+    	Specify the service ID you'd like to check for. For example, "0" for Atlassian Jira Open Signups. Use comma seperated values for multiple (i.e. "0,1" for two services). Use "*" to check for all services. (default "0")
   -skip-misconfiguration-checks string
     	Only check for existing instances (and skip checks for potential security misconfigurations). (default "false")
+  -skip-ssl
+    	Skip SSL/TLS verification (exercise caution!)
   -target string
-    	Specify your target domain name or company/organization name: "intigriti.com" or "intigriti" (files are also accepted)
+    	Specify your target company/organization name: "intigriti" (files are also accepted). If the target is a domain, add -as-domain
   -templates string
-        Specify the templates folder location (default "./templates")
+    	Specify the templates folder location (default "./templates")
   -timeout int
     	Specify a timeout for each request sent in milliseconds. (default 7000)
   -update-templates
     	Pull the latest templates & update your current services.json file
-  -verbose
-    	Print verbose messages
+  -verbose int
+    	Set output verbosity level. Levels: 0 (=silent, only display vulnerabilities), 1 (=default, suppress non-vulnerable results), 2 (=verbose, log all messages) (default 2)
 ```
 
 # Templates
