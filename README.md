@@ -18,7 +18,16 @@ The tool is based on templates and is versatile. New services can be easily adde
 -   If you provide a company name, the tool will automatically generate permutations based on the keyword you provided and try to find any matching services.
 -   You can also optionally select to only detect the presence of services without performing any misconfiguration checks (see more on [_Usage section_](cli-tool.md#usage)).
 
-# Installation
+# Installation instructions
+
+You can install Misconfig Mapper using Go (version >=1.24 recommended):
+```sh
+$ go install github.com/intigriti/misconfig-mapper/cmd/misconfig-mapper@latest
+```
+
+After installation, the misconfig-mapper command will be available in your PATH if your Go bin directory is properly configured.
+
+## Latest release
 
 To install Misconfig Mapper, you can clone the repository and compile the code from source or [download the latest release](https://github.com/intigriti/misconfig-mapper/releases).
 
@@ -29,7 +38,8 @@ To install Misconfig Mapper, you can clone the repository and compile the code f
 > ```
 > This command will ensure that you download the latest templates that misconfig-mapper requires.
 
-### From source
+
+## From source
 
 If you want to build your own instance from source, ensure you have the latest version of Golang installed. To verify your installation, run:
 
@@ -47,16 +57,16 @@ $ git clone https://github.com/intigriti/misconfig-mapper.git
 2. Next, compile your binary from source:
 
 ```bash
-$ go build -o misconfig-mapper
+$ go build -o misconfig-mapper ./cmd/misconfig-mapper
 ```
 
 3. Finally, add or move the binary to a folder in your `$PATH` (optional)
 
-### CLI Auto-Completion
+## CLI Auto-Completion
 
 In case you would like to enable autocompletions for Misconfig Mapper, we support both Bash and ZSH.
 
-#### Bash
+### Bash
 
 ```bash
 #!/bin/bash
@@ -77,7 +87,7 @@ _misconfig_mapper_autocomplete()
 complete -F _misconfig_mapper_autocomplete misconfig-mapper
 ```
 
-#### ZSH (OhMyZsh)
+### ZSH (OhMyZsh)
 
 ```zsh
 #!/bin/zsh
@@ -112,7 +122,7 @@ _auto_completion_misconfig_mapper "$@"
 > compinit
 > ```
 
-# Usage
+# Usage examples
 
 **Example 1:** Perform a scan to enumerate all misconfigured third-party services
 
