@@ -14,9 +14,9 @@ The tool is based on templates and is versatile. New services can be easily adde
 
 # Features
 
--   The CLI tool is based on templates defined in the `services.json` file. You can add as many as you want. See [_Templates section_](cli-tool.md#templates) for more information on how to add a template.
+-   The CLI tool is based on templates defined in the `services.json` file. You can add as many as you want. See [_Templates section_](#templates) for more information on how to add a template.
 -   If you provide a company name, the tool will automatically generate permutations based on the keyword you provided and try to find any matching services.
--   You can also optionally select to only detect the presence of services without performing any misconfiguration checks (see more on [_Usage section_](cli-tool.md#usage)).
+-   You can also optionally select to only detect the presence of services without performing any misconfiguration checks (see more on [_Usage examples section_](#usage-examples)).
 
 # Installation instructions
 
