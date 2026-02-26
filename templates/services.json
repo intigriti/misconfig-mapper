@@ -658,5 +658,36 @@
                 "https://www.synacktiv.com/publications/cicd-secrets-extraction-tips-and-tricks"
             ]
         }
-    }
+    },
+{
+        "id": 18,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://wd3.myworkday.com",
+            "path": [
+                "/{TARGET}/d/home.htmld"
+            ],
+            "body": null
+        },
+        "response": {
+            "statusCode": 200,
+            "detectionFingerprints": [
+                "https://wd3.myworkday.com/wday/authgwy/"
+            ],
+            "fingerprints": [
+                "https://wd3.myworkday.com/wday/authgwy/"
+            ]
+        },
+        "metadata": {
+            "service": "workday",
+            "serviceName": "Workday",
+            "description": "Workday instance",
+            "reproductionSteps": [
+                "Visit the URL"
+            ],
+            "references": [
+                "https://www.workday.com/"
+            ]
+        }
+    }    
 ]
