@@ -659,8 +659,99 @@
             ]
         }
     },
-{
+    {
         "id": 18,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://{TARGET}.goskope.com",
+            "path": ["/"],
+            "body": null
+        },
+        "response": {
+            "statusCode": [200, 302],
+            "detectionFingerprints": [
+                "X-Netskope-Request-Id",
+                "goskope"
+            ],
+            "fingerprints": [
+                "goskope"
+            ]
+        },
+        "metadata": {
+            "service": "netskope",
+            "serviceName": "Netskope Tenant Admin Console (US)",
+            "description": "Netskope Security Cloud administration console. Detection includes potential redirects to SSO or login portals.",
+            "reproductionSteps": [
+                "Visit the URL",
+                "Observe if the page redirects to a Netskope login or a third-party Identity Provider (IDP)"
+            ],
+            "references": [
+                "https://docs.netskope.com/en/"
+            ]
+        }
+    },
+    {
+        "id": 19,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://{TARGET}.eu.goskope.com",
+            "path": ["/"],
+            "body": null
+        },
+        "response": {
+            "statusCode": [200, 302],
+            "detectionFingerprints": [
+                "X-Netskope-Request-Id",
+                "goskope"
+            ],
+            "fingerprints": [
+                "goskope"
+            ]
+        },
+        "metadata": {
+            "service": "netskope",
+            "serviceName": "Netskope Tenant Admin Console (EU)",
+            "description": "Netskope Security Cloud administration console for EU-based tenants.",
+            "reproductionSteps": [
+                "Visit the URL"
+            ],
+            "references": [
+                "https://docs.netskope.com/en/"
+            ]
+        }
+    },
+    {
+        "id": 20,
+        "request": {
+            "method": "GET",
+            "baseURL": "https://{TARGET}.de.goskope.com",
+            "path": ["/"],
+            "body": null
+        },
+        "response": {
+            "statusCode": [200, 302],
+            "detectionFingerprints": [
+                "X-Netskope-Request-Id",
+                "goskope"
+            ],
+            "fingerprints": [
+               "goskope"
+            ]
+        },
+        "metadata": {
+            "service": "netskope",
+            "serviceName": "Netskope Tenant Admin Console (Frankfurt)",
+            "description": "Netskope Security Cloud administration console for German/Frankfurt-based tenants.",
+            "reproductionSteps": [
+                "Visit the URL"
+            ],
+            "references": [
+                "https://www.workday.com/"
+            ]
+        }
+    },
+    {
+        "id": 21,
         "request": {
             "method": "GET",
             "baseURL": "https://wd3.myworkday.com",
@@ -689,5 +780,5 @@
                 "https://www.workday.com/"
             ]
         }
-    }    
+    }
 ]
