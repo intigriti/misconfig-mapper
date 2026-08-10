@@ -603,13 +603,11 @@
                 404
             ],
             "detectionFingerprints": [
-                "<p id=\"error-title\">You are not authorized to view this bucket</p>",
-                "<p id=\"footer-title\">Is this your bucket?</p>",
+                "<p id=\"error-title\">Object not found</p>",
                 "href=\"https\\:\/\/developers.cloudflare.com\/r2\/data-access\/public-buckets\/\""
             ],
             "fingerprints": [
-                "<h3>Object not found<\\/h3>",
-                "<p id=\"footer-title\">Is this your bucket\\?<\\/p>",
+                "<p id=\"error-title\">Object not found</p>",
                 "href=\"https\\:\\/\\/developers.cloudflare.com\\/r2\\/data-access\\/public-buckets\\/\""
             ]
         },
