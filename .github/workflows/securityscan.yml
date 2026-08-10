@@ -22,7 +22,7 @@ jobs:
     steps:
     -
       name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     -
       id: vars
       run: |
@@ -31,17 +31,17 @@ jobs:
         echo "Using Go version ${goVersion}"
     -
       name: Set up Go
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@v7
       with:
         go-version: ${{ steps.vars.outputs.go_version }}
     -
       name: Initialize CodeQL
-      uses: github/codeql-action/init@v4
+      uses: github/codeql-action/init@v4.37.4
       with:
         languages: go
     -
       name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v4
+      uses: github/codeql-action/analyze@v4.37.4
 
   govulncheck:
 
@@ -55,7 +55,7 @@ jobs:
     steps:
     -
       name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     -
       id: vars
       run: |
@@ -64,7 +64,7 @@ jobs:
         echo "Using Go version ${goVersion}"
     -
       name: Set up Go
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@v7
       with:
         go-version: ${{ steps.vars.outputs.go_version }}
     -
@@ -84,7 +84,7 @@ jobs:
 
     steps:
     -
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     -
       name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
@@ -99,6 +99,6 @@ jobs:
     -
       name: Upload Trivy scan results to GitHub Security tab
       if: always()
-      uses: github/codeql-action/upload-sarif@v4
+      uses: github/codeql-action/upload-sarif@v4.37.4
       with:
         sarif_file: 'trivy-results.sarif'
