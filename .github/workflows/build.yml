@@ -9,7 +9,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       -
         name: Unshallow
         run: git fetch --prune --unshallow
@@ -21,7 +21,7 @@ jobs:
           echo "Using Go version ${goVersion}"
       -
         name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: ${{ steps.vars.outputs.go_version }}
       -
@@ -30,7 +30,7 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
       -
         name: Build
-        uses: goreleaser/goreleaser-action@v7.2.1
+        uses: goreleaser/goreleaser-action@v7.2.3
         with:
           version: latest
           args: build --config=.github/goreleaser.yml --clean --snapshot
