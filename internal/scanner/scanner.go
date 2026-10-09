@@ -5,8 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -18,7 +20,6 @@ import (
 )
 
 // Common domain suffixes for permutation generation
-// TODO: Add more suffixes
 var suffixes = []string{
 	"com", "net", "org", "io", "fr", "ltd", "app", "prod", "internal",
 	"dev", "development", "devops", "logs", "logging", "admin", "log",
@@ -39,6 +40,9 @@ type Scanner struct {
 	Verbosity        types.VerbosityLevel
 	RateLimiter      *rate.Limiter
 	SelectedServices []types.Service
+	// Retry config
+	maxRetries    int
+	retryDelay    time.Duration
 }
 
 // NewScanner creates a new scanner
@@ -53,14 +57,13 @@ func NewScanner(
 	verbosity types.VerbosityLevel,
 	delay int,
 ) *Scanner {
-	// Create a rate limiter if delay is specified
 	var limiter *rate.Limiter
 	if delay > 0 {
 		limiter = rate.NewLimiter(rate.Every(time.Duration(delay)*time.Millisecond), 1)
 	}
 
 	return &Scanner{
-		Target:        target,
+		Target:        sanitizeTarget(target),
 		AsDomain:      asDomain,
 		EnablePerms:   enablePerms,
 		SkipChecks:    skipChecks,
@@ -69,7 +72,18 @@ func NewScanner(
 		TerminalWidth: width,
 		Verbosity:     verbosity,
 		RateLimiter:   limiter,
+		maxRetries:    3,
+		retryDelay:    1 * time.Second,
 	}
+}
+
+func sanitizeTarget(target string) string {
+	target = strings.ReplaceAll(target, "..", "")
+	target = strings.TrimSpace(target)
+	if len(target) > 255 {
+		target = target[:255]
+	}
+	return target
 }
 
 // SetSelectedServices sets the services to scan
@@ -83,7 +97,6 @@ func (s *Scanner) GenerateTargets() ([]string, error) {
 
 	// Check if target is a file
 	if templates.IsFile(s.Target) {
-		// Load targets from file
 		targets, err := s.loadTargetsFromFile(s.Target)
 		if err != nil {
 			return nil, err
@@ -97,12 +110,20 @@ func (s *Scanner) GenerateTargets() ([]string, error) {
 			possibleTargets = targets
 		}
 	} else {
-		// Generate targets from a single target
 		if s.EnablePerms {
 			possibleTargets = s.generatePermutations(s.Target)
 		} else {
 			possibleTargets = []string{s.Target}
 		}
+	}
+
+	// Cap total targets to prevent runaway
+	const maxTargets = 5000
+	if len(possibleTargets) > maxTargets {
+		if s.Verbosity >= types.Verbose {
+			fmt.Printf("[!] Warning: Generated %d targets, capping at %d\n", len(possibleTargets), maxTargets)
+		}
+		possibleTargets = possibleTargets[:maxTargets]
 	}
 
 	if s.Verbosity >= types.Verbose {
@@ -114,6 +135,12 @@ func (s *Scanner) GenerateTargets() ([]string, error) {
 
 // loadTargetsFromFile loads target domains from a file
 func (s *Scanner) loadTargetsFromFile(filePath string) ([]string, error) {
+	filePath = filepath.Clean(filePath)
+	// Validate path
+	if !isAllowedFilePath(filePath) {
+		return nil, fmt.Errorf("file path not allowed: %s", filePath)
+	}
+
 	var targets []string
 
 	file, err := os.Open(filePath)
@@ -123,10 +150,15 @@ func (s *Scanner) loadTargetsFromFile(filePath string) ([]string, error) {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
+	// Limit line length
+	const maxLineLength = 512
+	buf := make([]byte, maxLineLength)
+	scanner.Buffer(buf, maxLineLength)
+
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line != "" {
-			targets = append(targets, line)
+			targets = append(targets, sanitizeTarget(line))
 		}
 	}
 
@@ -137,15 +169,26 @@ func (s *Scanner) loadTargetsFromFile(filePath string) ([]string, error) {
 	return targets, nil
 }
 
+func isAllowedFilePath(path string) bool {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return false
+	}
+	cwd, _ := os.Getwd()
+	return strings.HasPrefix(abs, cwd) || strings.HasPrefix(abs, "/tmp/")
+}
+
 // generatePermutations generates domain permutations for a target
 func (s *Scanner) generatePermutations(target string) []string {
 	var permutations []string
 
+	target = strings.TrimSpace(strings.ToLower(target))
+	if target == "" {
+		return permutations
+	}
+
 	// Always add original target
 	permutations = append(permutations, target)
-
-	// Clean target
-	target = strings.TrimSpace(strings.ToLower(target))
 
 	// Generate domain combinations
 	for _, suffix := range suffixes {
@@ -173,7 +216,6 @@ func (s *Scanner) craftTargetURL(baseURL, path, domain string) (string, error) {
 			domain = fmt.Sprintf("https://%v", domain)
 		}
 
-		// Parse and construct the URL
 		u, err := url.Parse(domain)
 		if err != nil {
 			return "", fmt.Errorf("invalid URL: %w", err)
@@ -182,7 +224,39 @@ func (s *Scanner) craftTargetURL(baseURL, path, domain string) (string, error) {
 		targetURL = u.String()
 	}
 
+	// Validate URL is not pointing to private IPs
+	if u, err := url.Parse(targetURL); err == nil {
+		host := u.Hostname()
+		if ips, err := net.LookupIP(host); err == nil {
+			for _, ip := range ips {
+				if isPrivateIP(ip) {
+					return "", fmt.Errorf("blocked: target resolves to private IP %s", ip)
+				}
+			}
+		}
+	}
+
 	return targetURL, nil
+}
+
+func isPrivateIP(ip net.IP) bool {
+	privateRanges := []string{
+		"10.0.0.0/8",
+		"172.16.0.0/12",
+		"192.168.0.0/16",
+		"127.0.0.0/8",
+		"169.254.0.0/16",
+		"::1/128",
+		"fe80::/10",
+		"fc00::/7",
+	}
+	for _, cidr := range privateRanges {
+		_, block, _ := net.ParseCIDR(cidr)
+		if block.Contains(ip) {
+			return true
+		}
+	}
+	return false
 }
 
 // ScanTargets performs the scan operation across all services and targets
@@ -236,8 +310,27 @@ func (s *Scanner) ScanTargets() error {
 					Vulnerable: false,
 				}
 
-				// Perform scan
-				s.Client.CheckResponse(&result, &service)
+				// Perform scan with retry
+				var lastErr error
+				for attempt := 0; attempt <= s.maxRetries; attempt++ {
+					if attempt > 0 {
+						time.Sleep(s.retryDelay * time.Duration(attempt)) // Exponential backoff
+						if s.Verbosity >= types.Verbose {
+							fmt.Printf("[*] Retry %d/%d for %s\n", attempt, s.maxRetries, targetURL)
+						}
+					}
+
+					s.Client.CheckResponse(&result, &service)
+
+					if result.Exists || result.Vulnerable || attempt == s.maxRetries {
+						break
+					}
+					lastErr = fmt.Errorf("no result")
+				}
+
+				if lastErr != nil && s.Verbosity >= types.Verbose {
+					fmt.Fprintf(os.Stderr, "[-] Failed after %d retries: %v\n", s.maxRetries, lastErr)
+				}
 
 				// Handle result
 				if result.Exists || result.Vulnerable {
