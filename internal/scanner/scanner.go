@@ -25,6 +25,12 @@ var suffixes = []string{
 	"stage", "staging", "stg", "production", "dev-only", "cicd",
 	"employee-only", "testing", "secret", "kibana", "employees",
 	"partners", "sso", "saml", "tickets", "issues", "oauth2",
+	"test", "qa", "uat", "preprod", "pre-prod", "sandbox", "demo", "beta",
+	"api", "backup", "backups", "old", "new", "temp", "tmp", "private",
+	"public", "corp", "intranet", "vpn", "git", "gitlab", "jenkins", "ci",
+	"grafana", "monitoring", "metrics", "data", "db", "database", "docs",
+	"support", "portal", "dashboard", "console", "cloud", "storage", "assets",
+	"cdn", "files", "s3", "co", "uk", "de", "eu", "us", "inc", "cloud-only",
 }
 
 // Scanner manages the scanning process
